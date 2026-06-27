@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passaporte QA Full Stack Sênior | E.TECH Cursos – Acesso Vitalício R$159,90</title>
+    <meta name="description" content="Acesso vitalício a 17 cursos práticos de QA. Automação Web, Mobile, APIs e Banco de Dados. Taxa única de R$159,90. Sem mensalidades. E.TECH Cursos.">
+    <meta property="og:title" content="Passaporte QA Full Stack Sênior | E.TECH Cursos">
+    <meta property="og:description" content="17 cursos práticos + 900 flashcards + mentorias. Taxa única de R$159,90.">
+    <meta property="og:type" content="website">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+
+        /* ── Gradient texts ── */
+        .gradient-text-emerald {
+            background: linear-gradient(135deg, #d1fae5 0%, #10b981 60%, #059669 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .gradient-text-red {
+            background: linear-gradient(135deg, #fca5a5 0%, #ef4444 60%, #dc2626 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ── Hero background ── */
+        .hero-bg {
+            background:
+                radial-gradient(ellipse 80% 40% at 50% 0%, rgba(16,185,129,.09) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 90% 60%, rgba(239,68,68,.05) 0%, transparent 60%),
+                #0f172a;
+        }
+
+        /* ── Glowing CTA button ── */
+        .btn-cta {
+            position: relative;
+            overflow: hidden;
+            transition: transform .3s ease, box-shadow .3s ease;
+            box-shadow: 0 0 24px rgba(16,185,129,.45), 0 4px 20px rgba(0,0,0,.35);
+        }
+        .btn-cta::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -120%;
+            width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);
+            transition: left .55s ease;
+        }
+        .btn-cta:hover::before { left: 160%; }
+        .btn-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 48px rgba(16,185,129,.65), 0 16px 40px rgba(0,0,0,.4);
+        }
+        .btn-pulse {
+            animation: btn-glow 2.6s ease-in-out infinite;
+        }
+        @keyframes btn-glow {
+            0%,100% { box-shadow: 0 0 24px rgba(16,185,129,.45), 0 4px 20px rgba(0,0,0,.3); }
+            50%      { box-shadow: 0 0 56px rgba(16,185,129,.75), 0 4px 30px rgba(0,0,0,.4); transform: scale(1.015); }
+        }
+
+        /* ── Cards (deliverables) ── */
+        .card {
+            background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(255,255,255,.07);
+            transition: transform .4s ease, border-color .4s ease, box-shadow .4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #10b981, transparent);
+            opacity: 0;
+            transition: opacity .4s ease;
+        }
+        .card:hover {
+            transform: translateY(-9px);
+            border-color: rgba(16,185,129,.32);
+            box-shadow: 0 24px 64px rgba(0,0,0,.5), 0 0 24px rgba(16,185,129,.1);
+        }
+        .card:hover::after { opacity: 1; }
+
+        /* ── Price box ── */
+        .price-box {
+            background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(16,185,129,.28);
+            box-shadow: 0 0 70px rgba(16,185,129,.08), inset 0 1px 0 rgba(255,255,255,.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .price-box::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(from 0deg, transparent 0deg, rgba(16,185,129,.03) 60deg, transparent 120deg);
+            animation: rotate-glow 12s linear infinite;
+        }
+        @keyframes rotate-glow {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
+        /* ── Badge ── */
+        .badge-red {
+            background: rgba(239,68,68,.14);
+            border: 1px solid rgba(239,68,68,.4);
+            animation: badge-blink 2.2s ease-in-out infinite;
+        }
+        @keyframes badge-blink {
+            0%,100% { background: rgba(239,68,68,.14); }
+            50%      { background: rgba(239,68,68,.26); }
+        }
+
+        /* ── Trust bar ── */
+        .trust-bar {
+            background: linear-gradient(90deg, rgba(16,185,129,.04) 0%, rgba(16,185,129,.1) 50%, rgba(16,185,129,.04) 100%);
+            border-top: 1px solid rgba(16,185,129,.14);
+            border-bottom: 1px solid rgba(16,185,129,.14);
+        }
+
+        /* ── Highlight box (Pain) ── */
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(16,185,129,.1) 0%, rgba(16,185,129,.04) 100%);
+            border-left: 4px solid #10b981;
+        }
+        .pain-card {
+            background: rgba(239,68,68,.05);
+            border-left: 3px solid rgba(239,68,68,.5);
+        }
+
+        /* ── FAQ ── */
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height .4s ease;
+        }
+        .faq-answer.open { max-height: 220px; }
+        .faq-icon { transition: transform .3s ease; }
+        .faq-item.open .faq-icon { transform: rotate(45deg); }
+        .faq-item.open { border-color: rgba(16,185,129,.3) !important; }
+
+        /* ── WhatsApp float ── */
+        .wa-float {
+            position: fixed;
+            bottom: 28px; right: 28px;
+            z-index: 9999;
+            width: 62px; height: 62px;
+            background: #25D366;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 22px rgba(37,211,102,.55);
+            animation: wa-float 3s ease-in-out infinite;
+            text-decoration: none;
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+        .wa-float:hover {
+            transform: scale(1.12);
+            box-shadow: 0 6px 34px rgba(37,211,102,.75);
+            animation-play-state: paused;
+        }
+        @keyframes wa-float {
+            0%,100% { transform: translateY(0); }
+            50%      { transform: translateY(-7px); }
+        }
+
+        /* ── Scroll-reveal ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity .65s ease, transform .65s ease;
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* ── Divider ── */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+        }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: rgba(16,185,129,.4); border-radius: 3px; }
+
+        ::selection { background: rgba(16,185,129,.3); color: #fff; }
+    </style>
+</head>
+
+<body class="bg-slate-900 text-white antialiased">
+
+<!-- ══════════════════════════════════
+     HEADER
+══════════════════════════════════ -->
+<header class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-white/[.06]">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <img src="logo.jpg" alt="E.TECH Cursos" class="h-10 w-auto rounded-lg object-contain">
+            <div class="hidden sm:block leading-tight">
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest">Escola de Tecnologia</p>
+                <p class="text-sm font-black text-white">E.TECH CURSOS</p>
+            </div>
+        </div>
+        <a href="https://hotm.io/passaporteqafullstack"
+           target="_blank" rel="noopener noreferrer"
+           class="btn-cta bg-emerald-500 hover:bg-emerald-400 text-white text-xs sm:text-sm font-bold px-5 py-2.5 rounded-full">
+            Garantir Acesso →
+        </a>
+    </div>
+</header>
+
+
+<!-- ══════════════════════════════════
+     HERO
+══════════════════════════════════ -->
+<section class="hero-bg min-h-screen flex items-center py-20 px-4 relative overflow-hidden">
+    <!-- decorative blobs -->
+    <div class="pointer-events-none absolute inset-0">
+        <div class="absolute -top-48 -right-48 w-[500px] h-[500px] bg-emerald-500/[.06] rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-48 -left-48 w-[500px] h-[500px] bg-red-500/[.05] rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="max-w-4xl mx-auto text-center relative z-10">
+
+        <!-- badge -->
+        <div class="inline-flex items-center gap-2 badge-red text-red-400 text-sm font-semibold px-5 py-2 rounded-full mb-8">
+            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse shrink-0"></span>
+            🔴 OFERTA DE ACESSO VITALÍCIO LIBERADA
+        </div>
+
+        <!-- H1 -->
+        <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-black leading-[1.08] mb-7 tracking-tight">
+            Pare de pagar <span class="gradient-text-red">aluguel</span><br>
+            pelo seu conhecimento.<br>
+            <span class="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-black text-slate-300 mt-2 block leading-snug">
+                Destrave o arsenal completo para se tornar um
+            </span>
+            <span class="gradient-text-emerald">QA Full Stack Sênior.</span>
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto mb-10 leading-relaxed">
+            O mercado não quer mais "testadores de tela". Domine
+            <strong class="text-white">Automação Web, Mobile, APIs e Banco de Dados</strong>
+            sem depender de desenvolvedores. Acesso vitalício a
+            <strong class="text-emerald-400">17 cursos práticos</strong>, desafios reais e nosso
+            sistema de memorização acelerada com mais de
+            <strong class="text-emerald-400">900 flashcards</strong>.
+        </p>
+
+        <!-- Price -->
+        <div class="flex flex-col items-center gap-2 mb-10">
+            <p class="text-slate-500 text-sm uppercase tracking-widest">Valor total dos cursos separados</p>
+            <p class="text-slate-600 text-2xl font-bold line-through">R$ 1.500,00</p>
+            <div class="flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1">
+                <span class="text-slate-400 text-xl">Taxa Única de</span>
+                <span class="text-5xl sm:text-6xl font-black text-emerald-400 leading-none">R$&nbsp;159,90</span>
+            </div>
+            <span class="inline-block text-emerald-500 text-sm font-semibold bg-emerald-500/10 border border-emerald-500/20 px-4 py-1.5 rounded-full mt-1">
+                ✓ Sem mensalidades &nbsp;·&nbsp; Sem renovações &nbsp;·&nbsp; Seu para sempre
+            </span>
+        </div>
+
+        <!-- CTA -->
+        <div class="flex flex-col items-center gap-5">
+            <a href="https://hotm.io/passaporteqafullstack"
+               target="_blank" rel="noopener noreferrer"
+               class="btn-cta btn-pulse w-full sm:w-auto inline-flex items-center justify-center gap-3
+                      bg-emerald-500 hover:bg-emerald-400 text-white
+                      text-lg sm:text-xl font-black px-8 sm:px-14 py-5 rounded-2xl uppercase tracking-wide">
+                <!-- lightning bolt -->
+                <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                QUERO DESTRAVAR MEU ACESSO VITALÍCIO AGORA
+            </a>
+
+            <!-- micro trust signals -->
+            <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-slate-500">
+                <span class="flex items-center gap-1.5">
+                    <!-- shield check -->
+                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Compra 100% Segura
+                </span>
+                <span class="flex items-center gap-1.5">
+                    <!-- credit card -->
+                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"/>
+                    </svg>
+                    Hotmart Protegida
+                </span>
+                <span class="flex items-center gap-1.5">
+                    <!-- check circle -->
+                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Acesso Imediato
+                </span>
+                <span class="flex items-center gap-1.5">
+                    <!-- clock -->
+                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                    </svg>
+                    7 Dias de Garantia
+                </span>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     TRUST BAR
+══════════════════════════════════ -->
+<div class="trust-bar py-5 px-4">
+    <div class="max-w-5xl mx-auto">
+        <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-sm text-slate-400">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                </svg>
+                <span><strong class="text-white">+2.000</strong> alunos ativos</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                </svg>
+                <span><strong class="text-white">17</strong> cursos práticos</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                </svg>
+                <span><strong class="text-white">900+</strong> flashcards</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                </svg>
+                <span>Atualizações <strong class="text-white">sempre inclusas</strong></span>
+            </div>
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                <span>Plataforma <strong class="text-white">Hotmart</strong></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+     THE PAIN
+══════════════════════════════════ -->
+<section class="py-24 px-4">
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-14 reveal">
+            <span class="text-red-400 text-xs font-bold uppercase tracking-[.2em] mb-3 block">O Problema</span>
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-black leading-tight">
+                O modelo tradicional de ensino<br>
+                <span class="gradient-text-red">está travando o seu salário.</span>
+            </h2>
+        </div>
+
+        <p class="text-slate-300 text-lg sm:text-xl text-center mb-10 max-w-3xl mx-auto leading-relaxed reveal">
+            Se você quer disputar as vagas de <strong class="text-white">10k+</strong> no mercado, você sabe que
+            precisa dominar testes automatizados e arquitetura de software. O problema é que o mercado te força
+            a escolher um destes dois caminhos ruins:
+        </p>
+
+        <div class="space-y-4 mb-12">
+            <div class="pain-card p-5 sm:p-6 rounded-xl flex items-start gap-4 reveal">
+                <span class="text-red-400 text-2xl font-black shrink-0 mt-0.5">1</span>
+                <p class="text-slate-300 text-base sm:text-lg leading-relaxed">
+                    <strong class="text-white">Pagar assinaturas mensais caras</strong> em plataformas
+                    que não entregam a prática do dia a dia.
+                </p>
+            </div>
+            <div class="pain-card p-5 sm:p-6 rounded-xl flex items-start gap-4 reveal">
+                <span class="text-red-400 text-2xl font-black shrink-0 mt-0.5">2</span>
+                <p class="text-slate-300 text-base sm:text-lg leading-relaxed">
+                    <strong class="text-white">Comprar cursos caríssimos separados</strong> para
+                    cada linguagem e framework.
+                </p>
+            </div>
+        </div>
+
+        <div class="highlight-box p-6 sm:p-9 rounded-2xl reveal">
+            <p class="text-base sm:text-xl text-white font-semibold leading-relaxed">
+                🎯 Nós decidimos quebrar esse sistema. Ao invés de cobrar mensalidades, reunimos
+                <strong class="text-emerald-400">absolutamente toda a base técnica</strong> que um QA precisa
+                para auditar sistemas direto na raiz e empacotamos em um único passe vitalício.
+            </p>
+        </div>
+    </div>
+</section>
+
+<div class="divider mx-6 sm:mx-16"></div>
+
+
+<!-- ══════════════════════════════════
+     DELIVERABLES  (4-column grid)
+══════════════════════════════════ -->
+<section class="py-24 px-4">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-16 reveal">
+            <span class="text-emerald-400 text-xs font-bold uppercase tracking-[.2em] mb-3 block">O Que Você Leva</span>
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-black leading-tight">
+                O Arsenal Completo: Tudo o que você leva hoje<br>
+                <span class="gradient-text-emerald">por apenas R$ 159,90.</span>
+            </h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+            <!-- Card 1 -->
+            <div class="card p-6 rounded-2xl reveal">
+                <div class="text-5xl mb-5">💻</div>
+                <h3 class="text-xl font-black text-white mb-3">17 Cursos Práticos</h3>
+                <p class="text-slate-400 text-sm leading-relaxed mb-5">
+                    Do zero ao avançado nas tecnologias mais exigidas pelas grandes empresas: Automação de API
+                    (RestAssured, Postman), Automação Web e Mobile (Selenium, Appium), Robot Framework, Java,
+                    SQL, Git e DevOps para QAs.
+                </p>
+                <div class="flex flex-wrap gap-1.5">
+                    <span class="text-[11px] bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-md">Selenium</span>
+                    <span class="text-[11px] bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-md">Appium</span>
+                    <span class="text-[11px] bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-md">Java</span>
+                    <span class="text-[11px] bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-md">SQL</span>
+                    <span class="text-[11px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-md border border-emerald-500/25">+13</span>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="card p-6 rounded-2xl reveal">
+                <div class="text-5xl mb-5">🎙️</div>
+                <h3 class="text-xl font-black text-white mb-3">4 Lives de Carreira e Mentoria</h3>
+                <p class="text-slate-400 text-sm leading-relaxed mb-5">
+                    A estratégia exata para você se posicionar no LinkedIn, dominar as entrevistas técnicas e
+                    negociar os melhores salários no modelo PJ ou CLT.
+                </p>
+                <div class="flex flex-wrap gap-1.5">
+                    <span class="text-[11px] bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-md">LinkedIn</span>
+                    <span class="text-[11px] bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-md">Entrevistas</span>
+                    <span class="text-[11px] bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-md">Salário PJ</span>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="card p-6 rounded-2xl reveal">
+                <div class="text-5xl mb-5">⚔️</div>
+                <h3 class="text-xl font-black text-white mb-3">Desafios Práticos de Mercado</h3>
+                <p class="text-slate-400 text-sm leading-relaxed mb-5">
+                    Não fique só na teoria. Coloque a mão no código e resolva problemas reais de engenharia de
+                    qualidade idênticos aos que as empresas aplicam em testes seletivos.
+                </p>
+                <div class="flex flex-wrap gap-1.5">
+                    <span class="text-[11px] bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-md">Casos Reais</span>
+                    <span class="text-[11px] bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-md">Portfólio</span>
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="card p-6 rounded-2xl reveal">
+                <div class="text-5xl mb-5">🧠</div>
+                <h3 class="text-xl font-black text-white mb-3">A Máquina de Memorização</h3>
+                <p class="text-slate-400 text-sm leading-relaxed mb-5">
+                    +900 Flashcards. Esqueceu o comando do SQL ou a sintaxe do Java? Nosso deck utiliza
+                    repetição espaçada para blindar a sua memória técnica permanentemente.
+                </p>
+                <div class="flex flex-wrap gap-1.5">
+                    <span class="text-[11px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-md border border-emerald-500/25">+900 flashcards</span>
+                    <span class="text-[11px] bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-md">Spaced Repetition</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<div class="divider mx-6 sm:mx-16"></div>
+
+
+<!-- ══════════════════════════════════
+     PRICE / VALUE STACK
+══════════════════════════════════ -->
+<section class="py-24 px-4">
+    <div class="max-w-2xl mx-auto">
+        <div class="text-center mb-14 reveal">
+            <span class="text-emerald-400 text-xs font-bold uppercase tracking-[.2em] mb-3 block">Transparência Total</span>
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-black">A Matemática do Valor</h2>
+            <p class="text-slate-400 mt-4 text-lg">Quanto custaria para montar esse arsenal sozinho?</p>
+        </div>
+
+        <div class="price-box rounded-3xl p-8 sm:p-12 relative z-10 reveal">
+
+            <!-- breakdown -->
+            <div class="space-y-0 mb-8 divide-y divide-white/[.05]">
+                <div class="flex justify-between items-center py-4">
+                    <span class="text-slate-300 text-sm sm:text-base">Cursos de Automação Web, Mobile e API</span>
+                    <span class="text-slate-500 line-through ml-4 shrink-0">R$ 800,00</span>
+                </div>
+                <div class="flex justify-between items-center py-4">
+                    <span class="text-slate-300 text-sm sm:text-base">Formação em Banco de Dados e Java</span>
+                    <span class="text-slate-500 line-through ml-4 shrink-0">R$ 400,00</span>
+                </div>
+                <div class="flex justify-between items-center py-4">
+                    <span class="text-slate-300 text-sm sm:text-base">Mentorias de Carreira + Desafios + Flashcards</span>
+                    <span class="text-slate-500 line-through ml-4 shrink-0">R$ 300,00</span>
+                </div>
+                <div class="flex justify-between items-center py-4">
+                    <span class="text-white font-bold text-lg">Total (ou renovações anuais de R$ 900)</span>
+                    <span class="text-red-400 font-bold text-lg line-through ml-4 shrink-0">R$ 1.500,00</span>
+                </div>
+            </div>
+
+            <!-- transition copy -->
+            <div class="bg-slate-800/70 rounded-xl p-5 mb-8 text-center">
+                <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                    Acreditamos que educação técnica avançada deve ser acessível.<br>
+                    <strong class="text-white">Hoje, você ignora todos os valores acima.</strong>
+                </p>
+            </div>
+
+            <!-- final price -->
+            <div class="text-center mb-8">
+                <p class="text-slate-500 text-xs uppercase tracking-widest mb-2">Acesso Vitalício Completo por apenas</p>
+                <p class="text-6xl sm:text-7xl font-black text-emerald-400 leading-none">R$&nbsp;159,90</p>
+                <p class="text-slate-500 mt-3 text-sm">(Taxa única · Sem mensalidades · Sem surpresas)</p>
+            </div>
+
+            <!-- bullets -->
+            <div class="flex flex-wrap justify-center gap-4 mb-10">
+                <span class="flex items-center gap-2 text-emerald-400 text-sm font-semibold">
+                    <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Acesso imediato
+                </span>
+                <span class="flex items-center gap-2 text-emerald-400 text-sm font-semibold">
+                    <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Sem renovação automática
+                </span>
+                <span class="flex items-center gap-2 text-emerald-400 text-sm font-semibold">
+                    <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Todas as atualizações futuras inclusas
+                </span>
+            </div>
+
+            <!-- secondary CTA -->
+            <a href="https://hotm.io/passaporteqafullstack"
+               target="_blank" rel="noopener noreferrer"
+               class="btn-cta block w-full text-center bg-emerald-500 hover:bg-emerald-400 text-white
+                      text-base sm:text-lg font-black px-8 py-5 rounded-xl uppercase tracking-wide relative z-10">
+                GARANTIR MEU ACESSO VITALÍCIO POR R$ 159,90
+            </a>
+
+            <p class="text-center text-slate-600 text-xs mt-4">
+                🔒 Ambiente 100% seguro · Processado pela Hotmart
+            </p>
+        </div>
+    </div>
+</section>
+
+<div class="divider mx-6 sm:mx-16"></div>
+
+
+<!-- ══════════════════════════════════
+     FAQ
+══════════════════════════════════ -->
+<section class="py-24 px-4">
+    <div class="max-w-3xl mx-auto">
+        <div class="text-center mb-14 reveal">
+            <span class="text-emerald-400 text-xs font-bold uppercase tracking-[.2em] mb-3 block">Dúvidas Frequentes</span>
+            <h2 class="text-3xl sm:text-4xl font-black">Ainda tem dúvidas?</h2>
+        </div>
+
+        <div class="space-y-3" id="faq">
+
+            <!-- Q1 -->
+            <div class="faq-item border border-white/[.07] bg-slate-800/40 rounded-xl overflow-hidden cursor-pointer reveal"
+                 onclick="toggleFAQ(this)">
+                <div class="flex items-center justify-between p-5 sm:p-6">
+                    <h3 class="text-white font-semibold text-base sm:text-lg pr-4">O acesso é vitalício mesmo?</h3>
+                    <svg class="faq-icon w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                    </svg>
+                </div>
+                <div class="faq-answer">
+                    <p class="text-slate-400 text-sm sm:text-base px-5 sm:px-6 pb-5 leading-relaxed">
+                        Sim. Você paga os R$ 159,90 uma única vez. Nunca cobraremos mensalidades e o curso será
+                        seu para sempre.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="faq-item border border-white/[.07] bg-slate-800/40 rounded-xl overflow-hidden cursor-pointer reveal"
+                 onclick="toggleFAQ(this)">
+                <div class="flex items-center justify-between p-5 sm:p-6">
+                    <h3 class="text-white font-semibold text-base sm:text-lg pr-4">Sou iniciante, o material serve para mim?</h3>
+                    <svg class="faq-icon w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                    </svg>
+                </div>
+                <div class="faq-answer">
+                    <p class="text-slate-400 text-sm sm:text-base px-5 sm:px-6 pb-5 leading-relaxed">
+                        Com certeza. Temos a trilha de Lógica de Programação e Testes de Software para quem está
+                        dando os primeiros passos antes de ir para os módulos de automação avançada.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="faq-item border border-white/[.07] bg-slate-800/40 rounded-xl overflow-hidden cursor-pointer reveal"
+                 onclick="toggleFAQ(this)">
+                <div class="flex items-center justify-between p-5 sm:p-6">
+                    <h3 class="text-white font-semibold text-base sm:text-lg pr-4">Como recebo o acesso?</h3>
+                    <svg class="faq-icon w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                    </svg>
+                </div>
+                <div class="faq-answer">
+                    <p class="text-slate-400 text-sm sm:text-base px-5 sm:px-6 pb-5 leading-relaxed">
+                        Assim que o pagamento for aprovado pela Hotmart, você receberá automaticamente o link de
+                        acesso com o seu login e senha no e-mail cadastrado.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     FINAL CTA
+══════════════════════════════════ -->
+<section class="py-24 px-4" style="background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(16,185,129,.08) 0%, transparent 70%);">
+    <div class="max-w-3xl mx-auto text-center">
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-black mb-6 leading-tight reveal">
+            Sua próxima vaga de
+            <span class="gradient-text-emerald">10k+</span><br>
+            começa aqui.
+        </h2>
+        <p class="text-slate-400 text-base sm:text-lg mb-10 max-w-2xl mx-auto leading-relaxed reveal">
+            Cada dia sem automação é um dia sendo substituído. Invista
+            <strong class="text-white">R$ 159,90</strong> uma única vez e garanta o arsenal completo
+            para os próximos anos da sua carreira.
+        </p>
+        <div class="reveal">
+            <a href="https://hotm.io/passaporteqafullstack"
+               target="_blank" rel="noopener noreferrer"
+               class="btn-cta btn-pulse inline-flex items-center justify-center gap-3
+                      bg-emerald-500 hover:bg-emerald-400 text-white
+                      text-lg sm:text-xl font-black px-10 py-5 rounded-2xl uppercase tracking-wide">
+                <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                QUERO MEU ACESSO VITALÍCIO AGORA
+            </a>
+            <p class="text-slate-600 text-xs mt-5">
+                🔒 Compra 100% segura · Processado pela Hotmart · Acesso imediato
+            </p>
+        </div>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════
+     FOOTER
+══════════════════════════════════ -->
+<footer class="border-t border-white/[.06] py-10 px-4">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-3">
+                <img src="logo.jpg" alt="E.TECH Cursos" class="h-8 w-auto rounded-lg opacity-70">
+                <span class="text-slate-500 text-sm">E.TECH Cursos &copy; 2025 · Marcos Barbosa</span>
+            </div>
+            <a href="https://wa.me/5511995353005?text=Ol%C3%A1%2C%20vim%20pelo%20site%20do%20Passaporte%20QA%20e%20tenho%20uma%20d%C3%BAvida!"
+               target="_blank" rel="noopener noreferrer"
+               class="flex items-center gap-2 text-slate-400 hover:text-emerald-400 transition-colors text-sm">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                </svg>
+                (11) 99535-3005
+            </a>
+        </div>
+        <p class="mt-6 pt-6 border-t border-white/[.05] text-center text-slate-700 text-xs">
+            Este site não é parte do Facebook ou Facebook Inc. Adicionalmente, este site NÃO é endossado pelo Facebook de forma alguma.
+        </p>
+    </div>
+</footer>
+
+
+<!-- ══════════════════════════════════
+     FLOATING WHATSAPP
+══════════════════════════════════ -->
+<a href="https://wa.me/5511995353005?text=Ol%C3%A1%2C%20vim%20pelo%20site%20do%20Passaporte%20QA%20Full%20Stack%20e%20tenho%20uma%20d%C3%BAvida!"
+   target="_blank" rel="noopener noreferrer"
+   class="wa-float"
+   title="Falar com Marcos Barbosa no WhatsApp">
+    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+    </svg>
+</a>
+
+
+<!-- ══════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════ -->
+<script>
+    // ── FAQ accordion ──
+    function toggleFAQ(item) {
+        const answer = item.querySelector('.faq-answer');
+        const isOpen = item.classList.contains('open');
+
+        document.querySelectorAll('.faq-item').forEach(el => {
+            el.classList.remove('open');
+            el.querySelector('.faq-answer').classList.remove('open');
+        });
+
+        if (!isOpen) {
+            item.classList.add('open');
+            answer.classList.add('open');
+        }
+    }
+
+    // ── Scroll-reveal ──
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+</script>
+
+</body>
+</html>

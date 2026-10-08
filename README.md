@@ -42,7 +42,7 @@ só como destaque, tatame #1A1A1A e cinza #666; Bebas Neue (títulos e números)
 ```
  Celular ──comandos──▶ TV (guarda o estado e aplica os comandos)
     ▲                   │
-    └──── estado ◀──────┘        conexão direta via WebRTC (PeerJS)
+    └──── estado ◀──────┘        WebRTC (PeerJS) ou, se não der, modo compatível (ntfy.sh)
 ```
 
 - O site é **100% estático** (pasta `public/`), por isso roda na **Vercel** sem servidor.
@@ -55,7 +55,18 @@ só como destaque, tatame #1A1A1A e cinza #666; Bebas Neue (títulos e números)
 - A TV guarda um token próprio e mantém sempre o mesmo código de sala, mesmo depois de
   standby ou queda do Wi-Fi. Só troca de código se outro aparelho estiver usando o mesmo
   por mais de 90 s. Ao lado da bolinha, a TV mostra "Conectando…", "Liberando a sala…" ou
-  "Navegador sem suporte ao celular" enquanto o celular ainda não consegue encontrá-la.
+  "Sem conexão com o celular" enquanto o celular ainda não consegue encontrá-la.
+- **Modo compatível**: navegadores de TV sem WebRTC (como o da LG/webOS, onde a LG libera
+  WebRTC só para apps parceiros) ou redes que bloqueiam a conexão direta usam um relay HTTP
+  pelo [ntfy.sh](https://ntfy.sh) (EventSource + XMLHttpRequest). TV e celular mostram
+  "modo compatível". O celular tenta o WebRTC primeiro e cai para o relay sozinho.
+  - O ntfy.sh público aceita **250 mensagens por dia por IP** (TV e celulares no mesmo Wi-Fi
+    dividem a cota). Cada comando gasta ~2 mensagens; toques rápidos são agrupados.
+    Com WebRTC funcionando, nenhuma mensagem é gasta.
+  - Os tópicos são públicos (`bbx-cronometro-<sala>-cmd/state`): quem souber o código da
+    sala consegue controlar o cronômetro — o mesmo nível de acesso do QR code.
+  - Servidor ntfy próprio (sem limite): defina `window.BJJ_RELAY_URL = 'https://seu-ntfy/'`
+    antes de carregar `shared/sync.js`.
 - O relógio é calculado a partir do horário da TV, então TV e celular mostram o mesmo tempo.
 
 ## Publicando na Vercel

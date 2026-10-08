@@ -71,9 +71,10 @@
   // Mostrado na TV enquanto os celulares ainda não conseguem achá-la.
   var CONN_TEXT = {
     online: 'Pronta para o celular',
+    relay: 'Pronta para o celular · modo compatível',
     offline: 'Conectando…',
     taken: 'Liberando a sala…',
-    unsupported: 'Navegador sem suporte ao celular'
+    unsupported: 'Sem conexão com o celular'
   };
 
   var state = null;
@@ -96,7 +97,7 @@
       });
     },
     onStatus: function (s) {
-      $$('.js-dot').forEach(function (el) { el.className = 'dot js-dot' + (s === 'online' ? ' online' : ''); });
+      $$('.js-dot').forEach(function (el) { el.className = 'dot js-dot' + (s === 'online' || s === 'relay' ? ' online' : ''); });
       $$('.js-conn-text').forEach(function (el) { el.textContent = CONN_TEXT[s] || ''; });
     }
   });

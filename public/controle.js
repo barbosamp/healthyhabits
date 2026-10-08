@@ -44,15 +44,17 @@
   var STATUS_TEXT = {
     connecting: 'Procurando a TV…',
     online: 'TV conectada',
+    relay: 'TV conectada · modo compatível',
     offline: 'Sem conexão',
     notfound: 'TV não encontrada. Confira se a TV mostra a sala ' + code
   };
   var conn = window.BJJSync.connect(code, {
     onState: function (s) { state = s; onState(); },
     onStatus: function (s) {
-      $('connDot').className = 'dot' + (s === 'online' ? ' online' : '');
+      var ok = s === 'online' || s === 'relay';
+      $('connDot').className = 'dot' + (ok ? ' online' : '');
       $('tvStatus').textContent = STATUS_TEXT[s] || '';
-      $('tvStatus').className = 'tv-status' + (s === 'online' ? '' : ' warn');
+      $('tvStatus').className = 'tv-status' + (ok ? '' : ' warn');
     }
   });
 

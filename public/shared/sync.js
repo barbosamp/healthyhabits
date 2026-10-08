@@ -17,6 +17,12 @@
   var RETRY_MS = 3000;
   var CONNECT_TIMEOUT_MS = 10000;
   var ACK_TIMEOUT_MS = 6000;
+  // Quanto tempo a TV insiste no próprio código quando o servidor diz que ele
+  // está em uso por outro token. A mesma TV retoma o código na hora (token
+  // salvo); esta espera só vale para outro aparelho ou sessão sem o token.
+  // Antes a troca acontecia em ~12 s e os celulares ficavam procurando um
+  // código que a TV não usava mais.
+  var TAKEN_GIVE_UP_MS = 90000;
   // Por padrão usa o servidor público gratuito do PeerJS. Para usar um servidor
   // PeerJS próprio, defina window.BJJ_PEER_OPTIONS (ex.: {host, port, path, secure}).
   var PEER_OPTIONS = root.BJJ_PEER_OPTIONS || { debug: 0 };
@@ -36,7 +42,14 @@
     var state = opts.initialState || S.createRoomState(code);
     var conns = [];
     var peer = null;
-    var takenAttempts = 0;
+    var takenSince = 0;
+    // Token fixo da TV: com ele o servidor do PeerJS devolve o código para a
+    // mesma TV na hora, mesmo que a sessão antiga ainda não tenha expirado.
+    var peerOptions = {};
+    for (var k in PEER_OPTIONS) {
+      if (Object.prototype.hasOwnProperty.call(PEER_OPTIONS, k)) peerOptions[k] = PEER_OPTIONS[k];
+    }
+    if (opts.token) peerOptions.token = opts.token;
 
     function peers() {
       return { tv: 1, remote: conns.length };
@@ -80,40 +93,53 @@
     }
 
     function open() {
+      if (!takenSince) opts.onStatus('offline');
       // Sem PeerJS/WebRTC (navegador de TV antigo) a TV continua funcionando
       // sozinha, pelo controle remoto; só não aceita celulares.
       try {
-        peer = new root.Peer(tvPeerId(code), PEER_OPTIONS);
+        if (!root.Peer) throw new Error('PeerJS indisponível');
+        peer = new root.Peer(tvPeerId(code), peerOptions);
       } catch (e) {
         peer = null;
-        opts.onStatus('offline');
+        opts.onStatus('unsupported');
         return;
       }
       peer.on('open', function () {
-        takenAttempts = 0;
+        takenSince = 0;
         opts.onStatus('online');
       });
       peer.on('connection', onConnection);
+      var current = peer;
       peer.on('disconnected', function () {
-        opts.onStatus('offline');
-        setTimeout(function () { if (!peer.destroyed) peer.reconnect(); }, RETRY_MS);
+        if (current.destroyed) return; // destruído de propósito em restart()
+        if (!takenSince) opts.onStatus('offline'); // mantém "Liberando a sala…"
+        setTimeout(function () { if (!current.destroyed) current.reconnect(); }, RETRY_MS);
       });
       peer.on('error', function (err) {
-        opts.onStatus('offline');
+        if (err.type === 'browser-incompatible') {
+          // Navegador sem WebRTC: não adianta tentar de novo.
+          opts.onStatus('unsupported');
+          if (peer) peer.destroy();
+          return;
+        }
         if (err.type === 'unavailable-id') {
-          // ID ainda preso de uma sessão anterior (recarregou a página) ou
-          // usado por outra TV. Tenta algumas vezes e depois troca de código.
-          takenAttempts += 1;
-          if (takenAttempts > 3) {
-            takenAttempts = 0;
+          // Código preso por uma sessão anterior desta TV (sem o token salvo)
+          // ou usado por outra TV. Insiste até a sessão antiga expirar e só
+          // depois troca de código.
+          var now = Date.now();
+          if (!takenSince) takenSince = now;
+          if (now - takenSince > TAKEN_GIVE_UP_MS) {
+            takenSince = 0;
             code = randomCode();
             state = S.createRoomState(code);
             opts.onCode(code);
             opts.onState(state);
           }
+          opts.onStatus('taken');
           restart();
-        } else if (['network', 'server-error', 'socket-error', 'socket-closed', 'browser-incompatible'].indexOf(err.type) >= 0) {
-          restart();
+        } else {
+          opts.onStatus('offline');
+          if (['network', 'server-error', 'socket-error', 'socket-closed'].indexOf(err.type) >= 0) restart();
         }
       });
     }

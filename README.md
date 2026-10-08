@@ -40,6 +40,10 @@ aceita o botão **OK/Play** do controle remoto da TV para iniciar/pausar.
   se encontrarem; se a rede não permitir conexão direta, o tráfego passa pelo TURN do PeerJS.
 - O estado (tempo, round, placar) fica salvo na TV: recarregar a página não perde nada,
   e os celulares reconectam sozinhos.
+- A TV guarda um token próprio e mantém sempre o mesmo código de sala, mesmo depois de
+  standby ou queda do Wi-Fi. Só troca de código se outro aparelho estiver usando o mesmo
+  por mais de 90 s. Ao lado da bolinha, a TV mostra "Conectando…", "Liberando a sala…" ou
+  "Navegador sem suporte ao celular" enquanto o celular ainda não consegue encontrá-la.
 - O relógio é calculado a partir do horário da TV, então TV e celular mostram o mesmo tempo.
 
 ## Publicando na Vercel

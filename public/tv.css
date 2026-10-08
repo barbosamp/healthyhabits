@@ -55,6 +55,8 @@ body.mode-match.phase-done { animation: none; }
 .top-right { display: flex; gap: 1.5vw; align-items: center; color: var(--muted); }
 .dot { width: 1.6vh; height: 1.6vh; border-radius: 50%; background: #ef4444; display: inline-block; }
 .dot.online { background: #22c55e; }
+.conn-text { color: #fca5a5; }
+.conn-text:empty { display: none; }
 
 /* ---------- Timer ---------- */
 .timer-view {

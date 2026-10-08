@@ -52,11 +52,26 @@
   var code = readRoomCode();
   showCode(code);
 
+  // Identifica esta TV no servidor do PeerJS (ver sync.js).
+  var token = load('bjj-token');
+  if (!token || !/^[a-z0-9]{8,}$/.test(token)) {
+    token = (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).slice(0, 16);
+    save('bjj-token', token);
+  }
+
   // ---------- Conexão ----------
+  // Mostrado na TV enquanto os celulares ainda não conseguem achá-la.
+  var CONN_TEXT = {
+    online: '',
+    offline: 'Conectando…',
+    taken: 'Liberando a sala…',
+    unsupported: 'Navegador sem suporte ao celular'
+  };
   var state = null;
   var conn = window.BJJSync.host({
     code: code,
     initialState: readSavedState(code),
+    token: token,
     onState: function (s) {
       state = s;
       save('bjj-state', JSON.stringify(s));
@@ -66,7 +81,10 @@
     onPeers: function (p) {
       $('peers').textContent = p.remote ? '📱 ' + p.remote : '📱 nenhum';
     },
-    onStatus: function (s) { $('connDot').className = 'dot' + (s === 'online' ? ' online' : ''); }
+    onStatus: function (s) {
+      $('connDot').className = 'dot' + (s === 'online' ? ' online' : '');
+      $('connText').textContent = CONN_TEXT[s] || '';
+    }
   });
 
   // ---------- Renderização ----------

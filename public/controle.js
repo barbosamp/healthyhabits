@@ -72,7 +72,7 @@
     connecting: 'Procurando a TV…',
     online: 'TV conectada',
     offline: 'Sem conexão',
-    notfound: 'TV com este código não está aberta'
+    notfound: 'TV não encontrada. Confira se a TV mostra a sala ' + code
   };
   var conn = window.BJJSync.connect(code, {
     onState: function (s) { state = s; onState(); },

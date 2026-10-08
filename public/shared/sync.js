@@ -144,9 +144,28 @@
       });
     }
 
-    function restart() {
+    var restartTimer = null;
+    function restart(delay) {
       if (peer) peer.destroy();
-      setTimeout(open, RETRY_MS);
+      clearTimeout(restartTimer); // nunca duas tentativas em paralelo
+      restartTimer = setTimeout(open, delay === undefined ? RETRY_MS : delay);
+    }
+
+    // Gera outro código de sala (menu da TV). Placar e configurações ficam;
+    // os celulares conectados precisam entrar de novo com o código novo.
+    function newCode() {
+      var previous = code;
+      do { code = randomCode(); } while (code === previous);
+      takenSince = 0;
+      var next = JSON.parse(JSON.stringify(state));
+      next.code = code;
+      state = next;
+      conns.slice().forEach(function (c) { try { c.close(); } catch (e) { /* já fechada */ } });
+      conns = [];
+      opts.onCode(code);
+      opts.onState(state);
+      opts.onPeers(peers());
+      restart(0);
     }
 
     opts.onState(state);
@@ -157,7 +176,8 @@
       now: function () { return Date.now(); },
       send: function (cmd, cb) {
         try { apply(cmd); if (cb) cb(null); } catch (e) { if (cb) cb(e); }
-      }
+      },
+      newCode: newCode
     };
   }
 

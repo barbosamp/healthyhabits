@@ -1,0 +1,6 @@
+Fontes do sistema tipográfico Blackbox (subconjunto latin, via Google Fonts).
+Todas sob a SIL Open Font License 1.1 — https://openfontlicense.org
+
+Bebas Neue — Copyright 2019 The Bebas Neue Project Authors (https://github.com/dharmatype/Bebas-Fonts)
+DM Sans    — Copyright 2014 The DM Sans Project Authors (https://github.com/googlefonts/dm-fonts)
+Space Mono — Copyright 2016 Google Inc. Designed by Colophon Foundry

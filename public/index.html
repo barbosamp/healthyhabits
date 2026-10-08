@@ -3,79 +3,140 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Cronômetro BJJ – TV</title>
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Cronômetro – Blackbox Jiu-Jitsu</title>
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="preload" href="/fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/brand.css">
   <link rel="stylesheet" href="/tv.css">
 </head>
-<body class="status-idle phase-work mode-rounds">
+<body data-screen="home" class="status-idle phase-work mode-rounds">
 
-  <!-- Navegadores exigem uma interação para liberar som e tela cheia. -->
-  <div id="unlock" class="overlay">
-    <div class="unlock-box">
-      <img src="/icon.svg" alt="" class="unlock-logo">
-      <h1>Cronômetro de Jiu-Jitsu</h1>
-      <p>Pressione <b>OK</b> no controle da TV (ou clique) para ativar a tela e o som.</p>
-      <button id="unlockBtn" autofocus>Ativar tela</button>
-    </div>
-  </div>
+  <!-- ============ MENU INICIAL ============ -->
+  <section id="home" class="screen home">
+    <div class="home-main">
+      <img src="/img/blackbox-logo-branco.png" alt="blackbox. Academia de Jiu Jitsu" class="logo">
 
-  <header class="top">
-    <div id="roundLabel" class="round-label"></div>
-    <div class="top-right">
-      <span id="connDot" class="dot"></span>
-      <span id="connText" class="conn-text"></span>
-      <span>Sala <b id="roomCode">----</b></span>
-      <span id="peers" class="peers"></span>
-      <span id="soundOff" class="sound-off" hidden>🔇</span>
-    </div>
-  </header>
+      <div class="label mark kicker">Cronômetro do tatame</div>
+      <h1 class="title">Entre na<br><span>sua caixa.</span></h1>
 
-  <!-- Treino em rounds, timer e cronômetro -->
-  <main id="timerView" class="timer-view">
-    <div id="phaseLabel" class="phase-label"></div>
-    <div id="time" class="time">0:00</div>
-    <div id="nextLabel" class="next-label"></div>
-    <div class="bar"><i id="bar"></i></div>
-  </main>
+      <nav id="menu" class="menu" aria-label="Menu">
+        <button class="menu-item" data-nav data-action="timer">
+          <span class="num"></span><b class="t" id="miTimerTitle">Cronômetro</b><span class="d" id="miTimerDesc"></span>
+        </button>
+        <button class="menu-item" data-nav data-action="presets">
+          <span class="num"></span><b class="t">Modelos de treino</b><span class="d">Combate, luta por faixa e timer</span>
+        </button>
+        <button class="menu-item" data-nav data-action="reset" id="miReset">
+          <span class="num"></span><b class="t">Zerar cronômetro</b><span class="d">Volta ao início do treino atual</span>
+        </button>
+        <button class="menu-item" data-nav data-action="sound">
+          <span class="num"></span><b class="t">Som</b><span class="d" id="miSoundDesc"></span>
+        </button>
+        <button class="menu-item" data-nav data-action="code" id="miCode">
+          <span class="num"></span><b class="t" id="miCodeTitle">Novo código de sala</b><span class="d" id="miCodeDesc"></span>
+        </button>
+        <button class="menu-item" data-nav data-action="fullscreen">
+          <span class="num"></span><b class="t">Tela cheia</b><span class="d">Liga ou desliga</span>
+        </button>
+      </nav>
+    </div>
 
-  <!-- Placar de luta -->
-  <main id="matchView" class="match-view" hidden>
-    <div class="athlete athlete-a" id="rowA">
-      <div class="strip"></div>
-      <div class="name" id="nameA"></div>
-      <div class="box adv"><small>VANT</small><span id="advA">0</span></div>
-      <div class="box pen"><small>PUN</small><span id="penA">0</span></div>
-      <div class="points" id="ptsA">0</div>
-    </div>
-    <div class="athlete athlete-b" id="rowB">
-      <div class="strip"></div>
-      <div class="name" id="nameB"></div>
-      <div class="box adv"><small>VANT</small><span id="advB">0</span></div>
-      <div class="box pen"><small>PUN</small><span id="penB">0</span></div>
-      <div class="points" id="ptsB">0</div>
-    </div>
-    <div class="match-clock">
-      <div id="matchPhase" class="match-phase">LUTA</div>
-      <div id="matchTime" class="match-time">5:00</div>
-    </div>
-  </main>
+    <aside class="home-connect">
+      <div class="label mark">Controle pelo celular</div>
+      <div id="qr" class="qr"></div>
+      <div class="label room-label">Sala</div>
+      <div class="room-code js-room">----</div>
+      <div class="remote-url">ou acesse <b id="remoteUrl"></b></div>
+      <div class="conn label">
+        <span class="dot js-dot"></span>
+        <span class="js-conn-text"></span>
+        <span class="js-peers"></span>
+      </div>
+    </aside>
 
-  <aside id="connect" class="connect">
-    <div id="qr" class="qr"></div>
-    <div class="connect-text">
-      <div class="connect-title">Controle pelo celular</div>
-      <div>Escaneie o QR code ou acesse</div>
-      <div id="remoteUrl" class="remote-url"></div>
-      <div>e digite a sala <b id="roomCode2">----</b></div>
-    </div>
-  </aside>
+    <footer class="foot">
+      <span class="label">Disciplina · Processo · Transformação</span>
+      <span class="label keys"><kbd>▲▼</kbd> navegar <kbd>OK</kbd> selecionar</span>
+    </footer>
+  </section>
 
-  <button id="fullscreenBtn" class="fs-btn" title="Tela cheia" tabindex="-1">⛶</button>
+  <!-- ============ MODELOS ============ -->
+  <section id="presets" class="screen presets" hidden>
+    <header class="presets-head">
+      <div class="label mark kicker">Modelos de treino</div>
+      <h2 class="title">Escolha o <span>treino.</span></h2>
+    </header>
+    <div id="presetCols" class="preset-cols"></div>
+    <footer class="foot">
+      <span class="label">O treino começa quando você aperta OK no cronômetro</span>
+      <span class="label keys"><kbd>◀▲▼▶</kbd> navegar <kbd>OK</kbd> usar <kbd>VOLTAR</kbd> menu</span>
+    </footer>
+  </section>
+
+  <!-- ============ CRONÔMETRO ============ -->
+  <section id="timer" class="screen timer" hidden>
+    <div class="frame" aria-hidden="true"></div>
+
+    <header class="top">
+      <div id="roundLabel" class="round-label"></div>
+      <div class="top-right label">
+        <span id="soundOff" class="sound-off" hidden>Som desligado</span>
+        <span class="dot js-dot"></span>
+        <span>Sala <b class="js-room">----</b></span>
+        <span class="js-peers"></span>
+      </div>
+    </header>
+
+    <!-- Treino em rounds, timer e cronômetro -->
+    <main id="timerView" class="timer-view">
+      <div id="phaseLabel" class="phase-label"></div>
+      <div id="time" class="time">0:00</div>
+      <div id="nextLabel" class="next-label label"></div>
+      <div class="bar"><i id="bar"></i></div>
+    </main>
+
+    <!-- Placar de luta -->
+    <main id="matchView" class="match-view" hidden>
+      <div class="athlete athlete-a" id="rowA">
+        <div class="strip"></div>
+        <div class="name"><span id="nameA"></span><small class="label winner-tag">Vencedor</small></div>
+        <div class="box adv"><small class="label">Vant</small><span id="advA">0</span></div>
+        <div class="box pen"><small class="label">Pun</small><span id="penA">0</span></div>
+        <div class="points" id="ptsA">0</div>
+      </div>
+      <div class="athlete athlete-b" id="rowB">
+        <div class="strip"></div>
+        <div class="name"><span id="nameB"></span><small class="label winner-tag">Vencedor</small></div>
+        <div class="box adv"><small class="label">Vant</small><span id="advB">0</span></div>
+        <div class="box pen"><small class="label">Pun</small><span id="penB">0</span></div>
+        <div class="points" id="ptsB">0</div>
+      </div>
+      <div class="match-clock">
+        <div id="matchPhase" class="match-phase">LUTA</div>
+        <div id="matchTime" class="match-time">5:00</div>
+      </div>
+    </main>
+
+    <aside id="connect" class="connect">
+      <div id="qrSmall" class="qr"></div>
+      <div>
+        <div class="label">Sala</div>
+        <div class="room-code js-room">----</div>
+      </div>
+    </aside>
+
+    <img src="/img/blackbox-logo-branco.png" alt="blackbox." class="logo-small">
+
+    <div id="soundLocked" class="sound-locked label" hidden>Aperte qualquer seta do controle para liberar o som</div>
+    <div id="timerHint" class="hint label"><kbd>OK</kbd> <span id="hintOk">iniciar</span> <kbd>VOLTAR</kbd> menu</div>
+  </section>
 
   <script src="/vendor/qrcode-1.0.0.min.js"></script>
   <script src="/vendor/peerjs-1.5.4.min.js"></script>
   <script src="/shared/timer.js"></script>
   <script src="/shared/state.js"></script>
+  <script src="/shared/presets.js"></script>
   <script src="/shared/sync.js"></script>
   <script src="/shared/sound.js"></script>
   <script src="/tv.js"></script>

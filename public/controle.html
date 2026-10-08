@@ -3,18 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0b0f14">
+  <meta name="theme-color" content="#0a0a0a">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Controle – Cronômetro BJJ</title>
+  <title>Controle – Blackbox Jiu-Jitsu</title>
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/brand.css">
   <link rel="stylesheet" href="/controle.css">
 </head>
 <body>
 
   <!-- Tela para digitar o código da sala -->
   <section id="join" class="join" hidden>
-    <img src="/icon.svg" alt="" class="join-logo">
-    <h1>Controle do Cronômetro</h1>
+    <img src="/img/blackbox-logo-branco.png" alt="blackbox. Academia de Jiu Jitsu" class="join-logo">
+    <div class="label mark kicker">Controle do tatame</div>
+    <h1>Entre na <span>sua caixa.</span></h1>
     <p>Digite o código de sala que aparece na TV.</p>
     <form id="joinForm">
       <input id="joinCode" inputmode="numeric" pattern="[0-9]{4,6}" maxlength="6" placeholder="0000" autocomplete="off" required>
@@ -24,15 +26,16 @@
 
   <div id="app" hidden>
     <header class="bar">
-      <div><span id="connDot" class="dot"></span> Sala <b id="roomCode"></b></div>
-      <div id="tvStatus" class="muted"></div>
+      <img src="/img/blackbox-logo-branco.png" alt="blackbox." class="bar-logo">
+      <div class="bar-room label"><span id="connDot" class="dot"></span> Sala <b id="roomCode"></b></div>
     </header>
+    <div id="tvStatus" class="tv-status"></div>
 
     <!-- Espelho do que está na TV -->
     <section id="preview" class="preview">
       <div class="preview-top">
-        <span id="pvPhase"></span>
-        <span id="pvRound"></span>
+        <span id="pvPhase" class="label"></span>
+        <span id="pvRound" class="label"></span>
       </div>
       <div id="pvTime" class="pv-time">0:00</div>
       <div id="pvScore" class="pv-score" hidden>
@@ -63,9 +66,9 @@
 
     <!-- Treino em rounds -->
     <section class="panel" data-panel="rounds">
-      <h2>Modelos prontos</h2>
+      <h2 class="label mark">Modelos prontos</h2>
       <div class="chips" id="roundsPresets"></div>
-      <h2>Personalizar</h2>
+      <h2 class="label mark">Personalizar</h2>
       <div class="steppers" id="roundsSteppers"></div>
       <button class="apply" data-apply="rounds">Usar na TV</button>
     </section>
@@ -76,8 +79,8 @@
         <input class="name-input" data-name="a" maxlength="24" placeholder="Atleta 1">
         <div class="score-line">
           <span class="score-total"><b data-show="points">0</b> pts</span>
-          <span class="tag adv">V <b data-show="advantages">0</b></span>
-          <span class="tag pen">P <b data-show="penalties">0</b></span>
+          <span class="tag adv label">V <b data-show="advantages">0</b></span>
+          <span class="tag pen label">P <b data-show="penalties">0</b></span>
         </div>
         <div class="score-btns">
           <button data-score="points" data-delta="2">+2</button>
@@ -94,8 +97,8 @@
         <input class="name-input" data-name="b" maxlength="24" placeholder="Atleta 2">
         <div class="score-line">
           <span class="score-total"><b data-show="points">0</b> pts</span>
-          <span class="tag adv">V <b data-show="advantages">0</b></span>
-          <span class="tag pen">P <b data-show="penalties">0</b></span>
+          <span class="tag adv label">V <b data-show="advantages">0</b></span>
+          <span class="tag pen label">P <b data-show="penalties">0</b></span>
         </div>
         <div class="score-btns">
           <button data-score="points" data-delta="2">+2</button>
@@ -111,7 +114,7 @@
       <p class="hint">Pontuação: queda, raspagem e joelho na barriga = 2 · passagem de guarda = 3 · montada e pegada nas costas = 4.</p>
       <button id="resetScoreBtn" class="ghost">Zerar placar</button>
 
-      <h2>Tempo de luta (por faixa)</h2>
+      <h2 class="label mark">Tempo de luta por faixa</h2>
       <div class="chips" id="matchPresets"></div>
       <div class="steppers" id="matchSteppers"></div>
       <button class="apply" data-apply="match">Usar na TV</button>
@@ -119,7 +122,7 @@
 
     <!-- Timer simples -->
     <section class="panel" data-panel="countdown">
-      <h2>Contagem regressiva</h2>
+      <h2 class="label mark">Contagem regressiva</h2>
       <div class="chips" id="countdownPresets"></div>
       <div class="steppers" id="countdownSteppers"></div>
       <button class="apply" data-apply="countdown">Usar na TV</button>
@@ -127,7 +130,7 @@
 
     <!-- Cronômetro livre -->
     <section class="panel" data-panel="stopwatch">
-      <h2>Cronômetro livre</h2>
+      <h2 class="label mark">Cronômetro livre</h2>
       <p class="hint">Conta o tempo para cima, sem limite. Bom para posições específicas e desafios.</p>
       <button class="apply" data-apply="stopwatch">Usar na TV</button>
     </section>
@@ -136,12 +139,14 @@
       <label class="switch"><input type="checkbox" id="soundToggle"> Som na TV</label>
       <button id="leaveBtn" class="ghost small">Trocar sala</button>
     </footer>
+    <p class="pillars label">Disciplina · Processo · Transformação</p>
   </div>
 
   <div id="toast" class="toast" hidden></div>
 
   <script src="/vendor/peerjs-1.5.4.min.js"></script>
   <script src="/shared/timer.js"></script>
+  <script src="/shared/presets.js"></script>
   <script src="/shared/sync.js"></script>
   <script src="/controle.js"></script>
 </body>

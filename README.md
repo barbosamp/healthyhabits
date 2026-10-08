@@ -28,65 +28,70 @@ aceita o botão **OK/Play** do controle remoto da TV para iniciar/pausar.
 ## Como funciona
 
 ```
- Celular ──POST /api/rooms/1234/command──▶ Servidor ──SSE (tempo real)──▶ TV
-   ▲                                          │
-   └──────────────── SSE ─────────────────────┘
+ Celular ──comandos──▶ TV (guarda o estado e aplica os comandos)
+    ▲                   │
+    └──── estado ◀──────┘        conexão direta via WebRTC (PeerJS)
 ```
 
-- A TV abre `/` e recebe um **código de sala** de 4 dígitos (fica salvo na TV).
-- O celular escaneia o QR code da TV (ou abre `/controle` e digita o código).
-- O servidor guarda o estado de cada sala e envia atualizações em tempo real.
-  O relógio é calculado localmente a partir do horário do servidor, então TV e
-  celular ficam sincronizados mesmo com a rede oscilando.
+- O site é **100% estático** (pasta `public/`), por isso roda na **Vercel** sem servidor.
+- A TV abre `/` e ganha um **código de sala** de 4 dígitos (fica salvo na TV).
+- O celular escaneia o QR code da TV (ou abre `/controle` e digita o código) e se
+  conecta **direto na TV**. O servidor gratuito do PeerJS só ajuda os aparelhos a
+  se encontrarem; se a rede não permitir conexão direta, o tráfego passa pelo TURN do PeerJS.
+- O estado (tempo, round, placar) fica salvo na TV: recarregar a página não perde nada,
+  e os celulares reconectam sozinhos.
+- O relógio é calculado a partir do horário da TV, então TV e celular mostram o mesmo tempo.
 
-## Rodando
+## Publicando na Vercel
+
+A configuração já está em `vercel.json` (publica a pasta `public/`, sem build).
+
+1. Em [vercel.com/new](https://vercel.com/new), importe o repositório `healthyhabits`.
+2. Framework Preset: **Other**. Não precisa mudar mais nada.
+3. Cada push gera um deploy; a branch de produção (ex.: `develop`) vira o endereço oficial.
+
+Na TV, abra `https://<seu-projeto>.vercel.app` e pressione **OK**. No celular, escaneie o QR code.
+
+## Rodando localmente
 
 Precisa só do **Node.js 18+** (não há dependências para instalar).
 
 ```bash
-npm start            # porta 3000 (ou defina PORT=8080)
+npm start            # serve a pasta public/ na porta 3000 (ou defina PORT=8080)
 npm test             # testes automatizados
 ```
 
-### Opção 1 — Computador na rede da academia
-1. Rode `npm start` em um computador/notebook ligado no Wi-Fi da academia.
-2. O terminal mostra o endereço na rede local, ex.: `http://192.168.0.10:3000`.
-3. Abra esse endereço no navegador da TV e pressione **OK** para ativar.
-4. No celular (mesmo Wi-Fi), escaneie o QR code que aparece na TV.
-
-### Opção 2 — Hospedado na internet (recomendado)
-Funciona de qualquer rede, inclusive no 4G do celular.
-- **Render**: o arquivo `render.yaml` já está pronto (New → Blueprint → este repositório,
-  branch `claude/jiu-jitsu-timer-tv-dxyr6t`). Também funciona em Railway, Fly.io etc.
-- Observação: no plano gratuito do Render o servidor "dorme" sem uso e leva alguns
-  segundos para acordar; o estado das salas fica em memória e é zerado quando o
-  servidor reinicia.
-
-> ⚠️ Plataformas só de arquivos estáticos (Vercel estático, GitHub Pages) **não**
-> servem, porque o app precisa do servidor para sincronizar TV e celular.
+O terminal mostra o endereço na rede local (ex.: `http://192.168.0.10:3000`) para abrir na TV.
+TV e celular precisam de internet para se encontrarem pelo PeerJS.
 
 ## Dicas para a TV
 - Use o navegador da Smart TV, um Chromecast/Fire TV Stick com navegador ou um
-  notebook ligado no HDMI.
+  notebook ligado no HDMI. O navegador precisa suportar WebRTC (os navegadores de TV
+  dos últimos anos suportam).
 - O som só é liberado depois do primeiro **OK/clique** na TV (regra dos navegadores).
-- O QR code é carregado do cdnjs; sem internet a TV mostra só o endereço e o código.
+- Deixe a TV com o app aberto: é ela que mantém o estado. Se a aba fechar, os celulares
+  ficam em "Procurando a TV…" até ela abrir de novo.
+- Servidor PeerJS próprio (opcional): defina `window.BJJ_PEER_OPTIONS = {host, port, path, secure}`
+  antes de carregar `shared/sync.js`.
 
 ## Estrutura
 
 ```
-server.js              servidor HTTP + SSE (sem dependências)
-lib/state.js           estado da sala e validação dos comandos
-public/shared/timer.js lógica pura do cronômetro (usada no servidor, TV e celular)
-public/shared/sync.js  conexão em tempo real (SSE, com polling de reserva)
-public/shared/sound.js sons com Web Audio
+vercel.json            publicação na Vercel (site estático)
+server.js              servidor local só para desenvolvimento (sem dependências)
 public/index.html      tela da TV
 public/controle.html   controle pelo celular
+public/shared/timer.js lógica pura do cronômetro (usada na TV e no celular)
+public/shared/state.js estado da sala e validação dos comandos (roda na TV)
+public/shared/sync.js  conexão TV ⇄ celular via WebRTC (PeerJS)
+public/shared/sound.js sons com Web Audio
+public/vendor/         PeerJS e gerador de QR code (licença MIT)
 test/                  testes (node:test)
 ```
 
-## API (para quem quiser integrar)
+## Comandos
 
-`POST /api/rooms/:codigo/command` com JSON, por exemplo:
+O celular envia para a TV mensagens `{"kind":"cmd","id":1,"cmd":{...}}`. Comandos aceitos:
 
 | Comando | Exemplo |
 |---|---|
@@ -99,5 +104,3 @@ test/                  testes (node:test)
 | Placar | `{"type":"score","athlete":"a","field":"points","delta":2}` (`advantages`, `penalties`) |
 | Nomes | `{"type":"setNames","a":"Marcos","b":"João"}` |
 | Zerar placar / som | `{"type":"resetScore"}` · `{"type":"setSound","on":false}` |
-
-`GET /api/rooms/:codigo/state` devolve o estado; `GET /api/rooms/:codigo/events` é o stream SSE.

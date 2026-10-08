@@ -68,13 +68,19 @@
   var activeTab = null;
   var lastMode = null;
 
-  var conn = window.BJJSync.connect(code, 'remote', {
+  var STATUS_TEXT = {
+    connecting: 'Procurando a TV…',
+    online: 'TV conectada',
+    offline: 'Sem conexão',
+    notfound: 'TV com este código não está aberta'
+  };
+  var conn = window.BJJSync.connect(code, {
     onState: function (s) { state = s; onState(); },
-    onPeers: function (p) {
-      $('tvStatus').textContent = p.tv ? 'TV conectada' : 'TV não conectada';
-      $('tvStatus').style.color = p.tv ? '' : '#f87171';
-    },
-    onStatus: function (s) { $('connDot').className = 'dot' + (s === 'online' ? ' online' : ''); }
+    onStatus: function (s) {
+      $('connDot').className = 'dot' + (s === 'online' ? ' online' : '');
+      $('tvStatus').textContent = STATUS_TEXT[s] || '';
+      $('tvStatus').style.color = s === 'online' ? '' : '#f87171';
+    }
   });
 
   // ---------- Envio de comandos ----------

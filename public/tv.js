@@ -6,39 +6,63 @@
   var $ = function (id) { return document.getElementById(id); };
 
   // ---------- Sala ----------
+  function load(key) {
+    try { return localStorage.getItem(key); } catch (e) { return null; }
+  }
+  function save(key, value) {
+    try { localStorage.setItem(key, value); } catch (e) { /* sem storage */ }
+  }
+
   function readRoomCode() {
     var m = /[?&]sala=([0-9]{4,6})/.exec(location.search);
     if (m) return m[1];
-    var saved = null;
-    try { saved = localStorage.getItem('bjj-room'); } catch (e) { /* sem storage */ }
-    if (saved && /^[0-9]{4}$/.test(saved)) return saved;
-    return String(Math.floor(1000 + Math.random() * 9000));
+    var saved = load('bjj-room');
+    if (saved && /^[0-9]{4,6}$/.test(saved)) return saved;
+    return window.BJJSync.randomCode();
   }
+
+  // O estado fica salvo na TV: recarregar a página não perde placar nem tempo.
+  function readSavedState(code) {
+    var s = null;
+    try { s = JSON.parse(load('bjj-state')); } catch (e) { /* estado corrompido */ }
+    return window.BJJState.isValidState(s) && s.code === code ? s : null;
+  }
+
+  function showCode(code) {
+    save('bjj-room', code);
+    $('roomCode').textContent = code;
+    $('roomCode2').textContent = code;
+    $('remoteUrl').textContent = location.host + '/controle';
+    var qr = $('qr');
+    qr.innerHTML = '';
+    if (window.QRCode) {
+      new window.QRCode(qr, {
+        text: location.origin + '/controle?sala=' + code,
+        width: 256,
+        height: 256,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: window.QRCode.CorrectLevel.M
+      });
+    } else {
+      qr.className += ' missing';
+    }
+  }
+
   var code = readRoomCode();
-  try { localStorage.setItem('bjj-room', code); } catch (e) { /* sem storage */ }
-
-  var remoteUrl = location.origin + '/controle?sala=' + code;
-  $('roomCode').textContent = code;
-  $('roomCode2').textContent = code;
-  $('remoteUrl').textContent = location.host + '/controle';
-
-  if (window.QRCode) {
-    new window.QRCode($('qr'), {
-      text: remoteUrl,
-      width: 256,
-      height: 256,
-      colorDark: '#000000',
-      colorLight: '#ffffff',
-      correctLevel: window.QRCode.CorrectLevel.M
-    });
-  } else {
-    $('qr').className += ' missing';
-  }
+  showCode(code);
 
   // ---------- Conexão ----------
   var state = null;
-  var conn = window.BJJSync.connect(code, 'tv', {
-    onState: function (s) { state = s; render(); },
+  var conn = window.BJJSync.host({
+    code: code,
+    initialState: readSavedState(code),
+    onState: function (s) {
+      state = s;
+      save('bjj-state', JSON.stringify(s));
+      render();
+    },
+    onCode: showCode,
     onPeers: function (p) {
       $('peers').textContent = p.remote ? '📱 ' + p.remote : '📱 nenhum';
     },
@@ -56,7 +80,7 @@
   }
 
   function render() {
-    if (!state) return;
+    if (!state || !conn) return; // conn ainda não existe na primeira chamada do host
     var view = T.computeView(state, conn.now());
 
     var classes = 'status-' + view.status + ' phase-' + view.phase + ' mode-' + state.mode;

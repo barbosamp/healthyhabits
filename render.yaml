@@ -1,9 +1,0 @@
-# Deploy gratuito no Render (https://render.com): New > Blueprint > selecione este repositório/branch.
-services:
-  - type: web
-    name: cronometro-jiu-jitsu
-    runtime: node
-    plan: free
-    buildCommand: "true"
-    startCommand: node server.js
-    healthCheckPath: /healthz

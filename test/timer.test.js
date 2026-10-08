@@ -3,7 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const T = require('../public/shared/timer.js');
-const { createRoomState, applyCommand, CommandError } = require('../lib/state');
+const { createRoomState, applyCommand, CommandError } = require('../public/shared/state.js');
 
 function roundsState(settings) {
   const s = createRoomState('1234');
@@ -170,4 +170,12 @@ test('comandos inválidos são rejeitados', () => {
   for (const cmd of bad) {
     assert.throws(() => applyCommand(s, cmd, 0), CommandError, JSON.stringify(cmd));
   }
+});
+
+test('estado salvo na TV só é reaproveitado se for válido', () => {
+  const { isValidState } = require('../public/shared/state.js');
+  assert.equal(isValidState(createRoomState('1234')), true);
+  assert.equal(isValidState(null), false);
+  assert.equal(isValidState({ mode: 'rounds' }), false);
+  assert.equal(isValidState(Object.assign(createRoomState('1234'), { mode: 'xyz' })), false);
 });

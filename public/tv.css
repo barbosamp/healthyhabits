@@ -1,0 +1,214 @@
+:root {
+  --bg: #0b0f14;
+  --fg: #f5f7fa;
+  --muted: rgba(245, 247, 250, 0.65);
+  --prep: #b45309;
+  --work: #15803d;
+  --rest: #1d4ed8;
+  --done: #b91c1c;
+  --a: #16a34a;
+  --b: #eab308;
+  --adv: #15803d;
+  --pen: #b91c1c;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Arial Black", "Helvetica Neue", Arial, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+}
+
+body { transition: background-color 0.4s ease; }
+body.status-running.phase-prep, body.status-paused.phase-prep { background: var(--prep); }
+body.status-running.phase-work, body.status-paused.phase-work { background: var(--work); }
+body.status-running.phase-rest, body.status-paused.phase-rest { background: var(--rest); }
+body.phase-done { animation: flash 1s steps(1) infinite; }
+body.mode-match, body.mode-stopwatch.status-running { background: var(--bg); }
+body.mode-match.phase-done { animation: none; }
+
+@keyframes flash {
+  0% { background: var(--done); }
+  50% { background: #450a0a; }
+}
+
+[hidden] { display: none !important; }
+
+/* ---------- Topo ---------- */
+.top {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2.5vh 3vw;
+  font-size: 3.2vh;
+  z-index: 2;
+}
+.round-label { font-size: 6vh; letter-spacing: 0.05em; }
+.top-right { display: flex; gap: 1.5vw; align-items: center; color: var(--muted); }
+.dot { width: 1.6vh; height: 1.6vh; border-radius: 50%; background: #ef4444; display: inline-block; }
+.dot.online { background: #22c55e; }
+
+/* ---------- Timer ---------- */
+.timer-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 4vh;
+}
+.phase-label { font-size: 11vh; letter-spacing: 0.08em; line-height: 1; }
+.time {
+  font-size: 30vw; /* fallback para navegadores sem min() */
+  font-size: min(42vh, 30vw);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 1vh 0;
+}
+.status-paused .time, .status-paused .match-time { opacity: 0.55; }
+.next-label { font-size: 5vh; color: var(--muted); min-height: 6vh; }
+.bar {
+  width: 80vw;
+  height: 2.2vh;
+  margin-top: 4vh;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+}
+.status-idle .bar { visibility: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--fg); border-radius: 99px; }
+
+/* ---------- Placar de luta ---------- */
+.match-view {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr 1fr 0.9fr;
+  gap: 1.5vh;
+  padding: 11vh 3vw 3vh;
+}
+.athlete {
+  display: grid;
+  grid-template-columns: 2.5vw 1fr 13vw 13vw 22vw;
+  align-items: stretch;
+  gap: 1vw;
+  background: #161b22;
+  border-radius: 1.5vh;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+.athlete .strip { background: var(--a); }
+.athlete-b .strip { background: var(--b); }
+.athlete .name {
+  align-self: center;
+  font-size: 8vh;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+.box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1vh;
+  margin: 1.5vh 0;
+}
+.box small { font-size: 2.6vh; opacity: 0.85; font-family: Arial, sans-serif; font-weight: 700; }
+.box span { font-size: 10vh; line-height: 1; }
+.box.adv { background: var(--adv); }
+.box.pen { background: var(--pen); }
+.points {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22vh;
+  background: #f5f7fa;
+  color: #0b0f14;
+}
+.athlete.winner { box-shadow: 0 0 0 0.8vh #facc15 inset; }
+.athlete.winner .name::after { content: "  🏆"; }
+.match-clock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4vw;
+}
+.match-phase { font-size: 8vh; color: var(--muted); }
+.match-time { font-size: 26vh; line-height: 1; }
+.phase-done .match-time { color: #ef4444; }
+
+/* ---------- Conexão do celular ---------- */
+.connect {
+  position: fixed;
+  right: 2.5vw;
+  bottom: 3vh;
+  display: flex;
+  gap: 2vw;
+  align-items: center;
+  padding: 2vh 2vw;
+  background: rgba(0, 0, 0, 0.72);
+  border-radius: 2vh;
+  font-family: Arial, sans-serif;
+  font-size: 2.6vh;
+  z-index: 3;
+}
+.connect.compact .connect-text { display: none; }
+.connect.compact .qr { width: 14vh; height: 14vh; }
+.qr { width: 22vh; height: 22vh; background: #fff; padding: 1vh; border-radius: 1vh; }
+.qr img, .qr canvas { width: 100% !important; height: 100% !important; display: block; }
+.qr.missing { display: none; }
+.connect-title { font-size: 3.4vh; font-weight: 700; margin-bottom: 1vh; }
+.remote-url { font-weight: 700; color: #facc15; margin: 0.5vh 0; }
+
+/* ---------- Overlay inicial ---------- */
+.overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(11, 15, 20, 0.96);
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+.unlock-logo { width: 18vh; height: 18vh; }
+.unlock-box h1 { font-size: 6vh; margin: 2vh 0; font-family: "Arial Black", Arial, sans-serif; }
+.unlock-box p { font-size: 3vh; color: var(--muted); max-width: 70vw; margin: 0 auto 4vh; }
+.unlock-box button {
+  font: inherit;
+  font-size: 4vh;
+  font-weight: 700;
+  padding: 2vh 5vw;
+  border: 0;
+  border-radius: 99px;
+  background: #22c55e;
+  color: #052e16;
+  cursor: pointer;
+}
+.unlock-box button:focus { outline: 0.6vh solid #facc15; outline-offset: 0.6vh; }
+
+.fs-btn {
+  position: fixed;
+  left: 2vw;
+  bottom: 2vh;
+  font-size: 3vh;
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--fg);
+  border: 0;
+  border-radius: 1vh;
+  padding: 0.6vh 1vw;
+  opacity: 0.4;
+  cursor: pointer;
+  z-index: 3;
+}
+.fs-btn:hover { opacity: 1; }

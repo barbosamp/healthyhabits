@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0f14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Controle – Cronômetro BJJ</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/controle.css">
+</head>
+<body>
+
+  <!-- Tela para digitar o código da sala -->
+  <section id="join" class="join" hidden>
+    <img src="/icon.svg" alt="" class="join-logo">
+    <h1>Controle do Cronômetro</h1>
+    <p>Digite o código de sala que aparece na TV.</p>
+    <form id="joinForm">
+      <input id="joinCode" inputmode="numeric" pattern="[0-9]{4,6}" maxlength="6" placeholder="0000" autocomplete="off" required>
+      <button type="submit">Conectar</button>
+    </form>
+  </section>
+
+  <div id="app" hidden>
+    <header class="bar">
+      <div><span id="connDot" class="dot"></span> Sala <b id="roomCode"></b></div>
+      <div id="tvStatus" class="muted"></div>
+    </header>
+
+    <!-- Espelho do que está na TV -->
+    <section id="preview" class="preview">
+      <div class="preview-top">
+        <span id="pvPhase"></span>
+        <span id="pvRound"></span>
+      </div>
+      <div id="pvTime" class="pv-time">0:00</div>
+      <div id="pvScore" class="pv-score" hidden>
+        <span class="pv-a"><i></i><b id="pvA">0</b></span>
+        <span class="pv-b"><i></i><b id="pvB">0</b></span>
+      </div>
+    </section>
+
+    <section class="controls">
+      <button id="toggleBtn" class="big start">INICIAR</button>
+      <div class="row">
+        <button data-cmd="reset">↺ Zerar</button>
+        <button data-cmd="skip" id="skipBtn">⏭ Pular fase</button>
+      </div>
+      <div class="row" id="adjustRow">
+        <button data-adjust="-10">−10s</button>
+        <button data-adjust="10">+10s</button>
+        <button data-adjust="60">+1 min</button>
+      </div>
+    </section>
+
+    <nav class="tabs" id="tabs">
+      <button data-tab="rounds">Treino</button>
+      <button data-tab="match">Luta</button>
+      <button data-tab="countdown">Timer</button>
+      <button data-tab="stopwatch">Cronômetro</button>
+    </nav>
+
+    <!-- Treino em rounds -->
+    <section class="panel" data-panel="rounds">
+      <h2>Modelos prontos</h2>
+      <div class="chips" id="roundsPresets"></div>
+      <h2>Personalizar</h2>
+      <div class="steppers" id="roundsSteppers"></div>
+      <button class="apply" data-apply="rounds">Usar na TV</button>
+    </section>
+
+    <!-- Luta com placar -->
+    <section class="panel" data-panel="match">
+      <div class="score-card" data-athlete="a">
+        <input class="name-input" data-name="a" maxlength="24" placeholder="Atleta 1">
+        <div class="score-line">
+          <span class="score-total"><b data-show="points">0</b> pts</span>
+          <span class="tag adv">V <b data-show="advantages">0</b></span>
+          <span class="tag pen">P <b data-show="penalties">0</b></span>
+        </div>
+        <div class="score-btns">
+          <button data-score="points" data-delta="2">+2</button>
+          <button data-score="points" data-delta="3">+3</button>
+          <button data-score="points" data-delta="4">+4</button>
+          <button data-score="points" data-delta="-1" class="minus">−1</button>
+          <button data-score="advantages" data-delta="1" class="adv">+V</button>
+          <button data-score="advantages" data-delta="-1" class="minus">−V</button>
+          <button data-score="penalties" data-delta="1" class="pen">+P</button>
+          <button data-score="penalties" data-delta="-1" class="minus">−P</button>
+        </div>
+      </div>
+      <div class="score-card" data-athlete="b">
+        <input class="name-input" data-name="b" maxlength="24" placeholder="Atleta 2">
+        <div class="score-line">
+          <span class="score-total"><b data-show="points">0</b> pts</span>
+          <span class="tag adv">V <b data-show="advantages">0</b></span>
+          <span class="tag pen">P <b data-show="penalties">0</b></span>
+        </div>
+        <div class="score-btns">
+          <button data-score="points" data-delta="2">+2</button>
+          <button data-score="points" data-delta="3">+3</button>
+          <button data-score="points" data-delta="4">+4</button>
+          <button data-score="points" data-delta="-1" class="minus">−1</button>
+          <button data-score="advantages" data-delta="1" class="adv">+V</button>
+          <button data-score="advantages" data-delta="-1" class="minus">−V</button>
+          <button data-score="penalties" data-delta="1" class="pen">+P</button>
+          <button data-score="penalties" data-delta="-1" class="minus">−P</button>
+        </div>
+      </div>
+      <p class="hint">Pontuação: queda, raspagem e joelho na barriga = 2 · passagem de guarda = 3 · montada e pegada nas costas = 4.</p>
+      <button id="resetScoreBtn" class="ghost">Zerar placar</button>
+
+      <h2>Tempo de luta (por faixa)</h2>
+      <div class="chips" id="matchPresets"></div>
+      <div class="steppers" id="matchSteppers"></div>
+      <button class="apply" data-apply="match">Usar na TV</button>
+    </section>
+
+    <!-- Timer simples -->
+    <section class="panel" data-panel="countdown">
+      <h2>Contagem regressiva</h2>
+      <div class="chips" id="countdownPresets"></div>
+      <div class="steppers" id="countdownSteppers"></div>
+      <button class="apply" data-apply="countdown">Usar na TV</button>
+    </section>
+
+    <!-- Cronômetro livre -->
+    <section class="panel" data-panel="stopwatch">
+      <h2>Cronômetro livre</h2>
+      <p class="hint">Conta o tempo para cima, sem limite. Bom para posições específicas e desafios.</p>
+      <button class="apply" data-apply="stopwatch">Usar na TV</button>
+    </section>
+
+    <footer class="footer">
+      <label class="switch"><input type="checkbox" id="soundToggle"> Som na TV</label>
+      <button id="leaveBtn" class="ghost small">Trocar sala</button>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="/vendor/peerjs-1.5.4.min.js"></script>
+  <script src="/shared/timer.js"></script>
+  <script src="/shared/sync.js"></script>
+  <script src="/controle.js"></script>
+</body>
+</html>

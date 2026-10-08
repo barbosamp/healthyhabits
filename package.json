@@ -1,0 +1,15 @@
+{
+  "name": "cronometro-jiu-jitsu",
+  "version": "1.0.0",
+  "description": "Cronômetro de jiu-jitsu para TV, controlado pelo celular.",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

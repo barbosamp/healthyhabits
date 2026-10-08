@@ -1,0 +1,70 @@
+/*
+ * Identidade Blackbox (Brand Guidelines v1.0): paleta, tipografia e foco.
+ * Usado pela TV e pelo controle do celular.
+ *
+ *   Preto  #0A0A0A  70%  base de tudo
+ *   Branco #F5F5F0  20%  tipografia e respiro
+ *   Ouro   #E8B84B   8%  destaque cirúrgico (nunca sobre branco)
+ *   Cinzas #1A1A1A / #666666  2%  superfícies e texto secundário
+ *
+ *   Bebas Neue  títulos e números · Space Mono  labels em caixa alta · DM Sans  texto
+ */
+@font-face {
+  font-family: "Bebas Neue";
+  src: url("/fonts/bebas-neue-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "DM Sans";
+  src: url("/fonts/dm-sans-var.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Space Mono";
+  src: url("/fonts/space-mono-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  --blackout: #0a0a0a;
+  --gold: #e8b84b;
+  --white: #f5f5f0;
+  --tatame: #1a1a1a;
+  --gray: #666666;
+  /* Faixas: usadas só como acento, o fundo continua preto. */
+  --belt-blue: #2563eb;
+
+  --display: "Bebas Neue", "Arial Narrow", Impact, sans-serif;
+  --mono: "Space Mono", "Courier New", monospace;
+  --body: "DM Sans", Arial, sans-serif;
+}
+
+/* Label/tag: Space Mono sempre em caixa alta, com tracking generoso. */
+.label {
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+/* Marcador das seções (quadrado ouro + quadrado branco), como na cartilha. */
+.mark::before {
+  content: "";
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  margin-right: 1.4em;
+  vertical-align: 0.05em;
+  background: var(--gold);
+  box-shadow: 1.05em 0 0 var(--white);
+}
+
+/* As barras verticais (||||) que representam as faixas. */
+.belt-bars {
+  display: inline-flex;
+  gap: 0.18em;
+  height: 1em;
+}
+.belt-bars i { display: block; width: 0.22em; height: 100%; background: var(--gold); }

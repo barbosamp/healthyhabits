@@ -1,14 +1,16 @@
-# 🥋 Cronômetro de Jiu-Jitsu para TV
+# Cronômetro Blackbox Jiu-Jitsu para TV
 
-Cronômetro para a TV da academia, **controlado pelo celular**. A TV só exibe; quem
-manda é o celular (vários celulares podem controlar a mesma TV ao mesmo tempo).
+Cronômetro para a TV da academia, na identidade visual da **Blackbox**. Funciona só com
+o **controle remoto da TV** ou **controlado pelo celular** (vários celulares podem
+controlar a mesma TV ao mesmo tempo).
 
 ## Funcionalidades
 
 **Treino em rounds** (combates, drills, circuitos)
 - Rounds × tempo de round × descanso × preparação inicial
 - Modelos prontos: Combate 5×5, Combate 6×6, Combate rápido 8×3, Drill 10×2, Tabata 8×20s, Circuito 10×45s
-- Tela muda de cor por fase: 🟧 preparar · 🟩 combate · 🟦 descanso · 🟥 fim
+- Moldura da tela na cor da fase: branco preparar · ouro combate · azul descanso ·
+  fim pisca preto ⇄ branco. Nos últimos 10 s do combate o número fica ouro
 - "Pular fase" (ex.: encerrar o descanso antes)
 
 **Luta com placar**
@@ -22,15 +24,25 @@ manda é o celular (vários celulares podem controlar a mesma TV ao mesmo tempo)
 **Sons** gerados no navegador: bip de 10 segundos, contagem 3-2-1 antes de cada
 round, sinal de início, sinal de descanso e buzina de fim. Dá para desligar pelo celular.
 
-**TV**: tela cheia, impede a tela de apagar (quando o navegador permite) e
-aceita o botão **OK/Play** do controle remoto da TV para iniciar/pausar.
+**TV pelo controle remoto**
+- **Menu inicial**: cronômetro, modelos de treino, zerar, som, **novo código de sala** e tela cheia
+- **Modelos de treino** direto na TV (combate e drills, luta por faixa, timer), sem precisar do celular
+- No cronômetro: **OK** inicia/pausa e **VOLTAR** retorna ao menu (o tempo continua correndo)
+- Teclas: setas, OK/Enter, Play/Pause e VOLTAR (Backspace/Esc, Return do Tizen, Back do webOS);
+  controles com ponteiro (Magic Remote da LG) funcionam com clique
+- Quando o celular escolhe um treino ou dá início, a TV abre o cronômetro sozinha
+- Tela cheia e tela sempre ligada (quando o navegador permite)
+
+**Identidade Blackbox** (Brand Guidelines v1.0): preto #0A0A0A, branco #F5F5F0, ouro #E8B84B
+só como destaque, tatame #1A1A1A e cinza #666; Bebas Neue (títulos e números), Space Mono
+(labels) e DM Sans (texto), servidas pelo próprio app. O logo é o arquivo oficial, sem recriação.
 
 ## Como funciona
 
 ```
  Celular ──comandos──▶ TV (guarda o estado e aplica os comandos)
     ▲                   │
-    └──── estado ◀──────┘        conexão direta via WebRTC (PeerJS)
+    └──── estado ◀──────┘        WebRTC (PeerJS) ou, se não der, modo compatível (ntfy.sh)
 ```
 
 - O site é **100% estático** (pasta `public/`), por isso roda na **Vercel** sem servidor.
@@ -40,6 +52,21 @@ aceita o botão **OK/Play** do controle remoto da TV para iniciar/pausar.
   se encontrarem; se a rede não permitir conexão direta, o tráfego passa pelo TURN do PeerJS.
 - O estado (tempo, round, placar) fica salvo na TV: recarregar a página não perde nada,
   e os celulares reconectam sozinhos.
+- A TV guarda um token próprio e mantém sempre o mesmo código de sala, mesmo depois de
+  standby ou queda do Wi-Fi. Só troca de código se outro aparelho estiver usando o mesmo
+  por mais de 90 s. Ao lado da bolinha, a TV mostra "Conectando…", "Liberando a sala…" ou
+  "Sem conexão com o celular" enquanto o celular ainda não consegue encontrá-la.
+- **Modo compatível**: navegadores de TV sem WebRTC (como o da LG/webOS, onde a LG libera
+  WebRTC só para apps parceiros) ou redes que bloqueiam a conexão direta usam um relay HTTP
+  pelo [ntfy.sh](https://ntfy.sh) (EventSource + XMLHttpRequest). TV e celular mostram
+  "modo compatível". O celular tenta o WebRTC primeiro e cai para o relay sozinho.
+  - O ntfy.sh público aceita **250 mensagens por dia por IP** (TV e celulares no mesmo Wi-Fi
+    dividem a cota). Cada comando gasta ~2 mensagens; toques rápidos são agrupados.
+    Com WebRTC funcionando, nenhuma mensagem é gasta.
+  - Os tópicos são públicos (`bbx-cronometro-<sala>-cmd/state`): quem souber o código da
+    sala consegue controlar o cronômetro — o mesmo nível de acesso do QR code.
+  - Servidor ntfy próprio (sem limite): defina `window.BJJ_RELAY_URL = 'https://seu-ntfy/'`
+    antes de carregar `shared/sync.js`.
 - O relógio é calculado a partir do horário da TV, então TV e celular mostram o mesmo tempo.
 
 ## Publicando na Vercel
@@ -68,7 +95,10 @@ TV e celular precisam de internet para se encontrarem pelo PeerJS.
 - Use o navegador da Smart TV, um Chromecast/Fire TV Stick com navegador ou um
   notebook ligado no HDMI. O navegador precisa suportar WebRTC (os navegadores de TV
   dos últimos anos suportam).
-- O som só é liberado depois do primeiro **OK/clique** na TV (regra dos navegadores).
+- O som só é liberado depois da primeira tecla/clique na TV (regra dos navegadores);
+  enquanto isso o cronômetro mostra o aviso para apertar uma seta.
+- Celular não encontra a TV? No menu da TV, **Novo código de sala** (pede um segundo OK
+  para confirmar) e escaneie o QR code novo. Treino e placar continuam.
 - Deixe a TV com o app aberto: é ela que mantém o estado. Se a aba fechar, os celulares
   ficam em "Procurando a TV…" até ela abrir de novo.
 - Servidor PeerJS próprio (opcional): defina `window.BJJ_PEER_OPTIONS = {host, port, path, secure}`
@@ -79,8 +109,12 @@ TV e celular precisam de internet para se encontrarem pelo PeerJS.
 ```
 vercel.json            publicação na Vercel (site estático)
 server.js              servidor local só para desenvolvimento (sem dependências)
-public/index.html      tela da TV
+public/index.html      tela da TV (menu, modelos e cronômetro)
 public/controle.html   controle pelo celular
+public/brand.css       paleta, fontes e elementos da identidade Blackbox
+public/fonts/          Bebas Neue, DM Sans e Space Mono (SIL OFL)
+public/img/            logo oficial Blackbox (versão branca)
+public/shared/presets.js modelos prontos (TV e celular)
 public/shared/timer.js lógica pura do cronômetro (usada na TV e no celular)
 public/shared/state.js estado da sala e validação dos comandos (roda na TV)
 public/shared/sync.js  conexão TV ⇄ celular via WebRTC (PeerJS)

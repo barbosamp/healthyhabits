@@ -16,12 +16,19 @@ test('servidor local entrega a TV, o controle e os scripts', async (t) => {
     ['/controle', 'controle.js'],
     ['/controle.html', 'controle.js'],
     ['/shared/state.js', 'applyCommand'],
-    ['/vendor/peerjs-1.5.4.min.js', 'Peer']
+    ['/vendor/peerjs-1.5.4.min.js', 'Peer'],
+    ['/shared/presets.js', 'Combate 5'],
+    ['/brand.css', 'Bebas Neue']
   ];
   for (const [path, needle] of pages) {
     const res = await fetch(base + path);
     assert.equal(res.status, 200, path);
     assert.match(await res.text(), new RegExp(needle), path);
+  }
+  for (const [path, type] of [['/fonts/bebas-neue-400.woff2', 'font/woff2'], ['/img/blackbox-logo-branco.png', 'image/png']]) {
+    const res = await fetch(base + path);
+    assert.equal(res.status, 200, path);
+    assert.equal(res.headers.get('content-type'), type, path);
   }
   assert.equal((await fetch(base + '/nao-existe')).status, 404);
   assert.equal((await fetch(base + '/..%2fserver.js')).status, 404, 'não sai da pasta public');

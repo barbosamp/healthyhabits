@@ -1,16 +1,4 @@
-:root {
-  --bg: #0b0f14;
-  --fg: #f5f7fa;
-  --muted: rgba(245, 247, 250, 0.65);
-  --prep: #b45309;
-  --work: #15803d;
-  --rest: #1d4ed8;
-  --done: #b91c1c;
-  --a: #16a34a;
-  --b: #eab308;
-  --adv: #15803d;
-  --pen: #b91c1c;
-}
+/* Tela da TV — identidade Blackbox (ver brand.css). Medidas em vh/vw: a TV pode ser de qualquer tamanho. */
 
 * { box-sizing: border-box; }
 
@@ -18,197 +6,353 @@ html, body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: "Arial Black", "Helvetica Neue", Arial, system-ui, sans-serif;
-  font-variant-numeric: tabular-nums;
+  background: var(--blackout);
+  color: var(--white);
+  font-family: var(--body);
   cursor: default;
 }
-
-body { transition: background-color 0.4s ease; }
-body.status-running.phase-prep, body.status-paused.phase-prep { background: var(--prep); }
-body.status-running.phase-work, body.status-paused.phase-work { background: var(--work); }
-body.status-running.phase-rest, body.status-paused.phase-rest { background: var(--rest); }
-body.phase-done { animation: flash 1s steps(1) infinite; }
-body.mode-match, body.mode-stopwatch.status-running { background: var(--bg); }
-body.mode-match.phase-done { animation: none; }
-
-@keyframes flash {
-  0% { background: var(--done); }
-  50% { background: #450a0a; }
-}
-
 [hidden] { display: none !important; }
 
-/* ---------- Topo ---------- */
-.top {
-  position: fixed;
-  top: 0; left: 0; right: 0;
+button { font: inherit; color: inherit; }
+kbd {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.9em;
+  padding: 0.25em 0.7em;
+  margin: 0 0.4em 0 1.4em;
+  border: 1px solid var(--white);
+  color: var(--white);
+  letter-spacing: 0.1em;
+}
+kbd:first-child { margin-left: 0; }
+
+.screen { position: fixed; top: 0; right: 0; bottom: 0; left: 0; }
+
+.dot {
+  display: inline-block;
+  width: 1.4vh;
+  height: 1.4vh;
+  border: 0.25vh solid var(--gray);
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.dot.online { background: var(--gold); border-color: var(--gold); }
+
+.foot {
+  position: absolute;
+  left: 5vw;
+  right: 5vw;
+  bottom: 4vh;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 2.5vh 3vw;
-  font-size: 3.2vh;
+  padding-top: 2.4vh;
+  border-top: 1px solid var(--tatame);
+  font-size: 1.7vh;
+  color: var(--gray);
+}
+.foot .keys { color: var(--white); }
+
+.kicker { font-size: 1.9vh; color: var(--gold); }
+.title {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 8.5vh;
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  margin: 1.4vh 0 3.4vh;
+  text-transform: uppercase;
+}
+.title span { color: var(--gold); }
+
+/* ================= MENU INICIAL ================= */
+.home {
+  display: grid;
+  grid-template-columns: 1fr 34vw;
+  gap: 5vw;
+  padding: 6vh 5vw 14vh;
+}
+.home-main { display: flex; flex-direction: column; min-height: 0; }
+.logo { height: 10vh; width: auto; align-self: flex-start; margin-bottom: 4vh; }
+
+.menu {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.4vh 1.4vw;
+  max-width: 60vw;
+}
+.menu-item {
+  display: grid;
+  grid-template-columns: 4.5vh 1fr;
+  grid-template-rows: auto auto;
+  align-items: baseline;
+  text-align: left;
+  padding: 1.5vh 1.6vw 1.5vh 1.4vw;
+  background: var(--tatame);
+  border: 0;
+  border-left: 0.6vh solid var(--tatame);
+  cursor: pointer;
+  outline: 0;
+}
+.menu-item .num { grid-row: 1 / 3; font-family: var(--mono); font-size: 1.7vh; color: var(--gray); }
+.menu-item .t {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 3.9vh;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.menu-item .d { font-size: 1.9vh; color: var(--gray); margin-top: 0.6vh; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Foco do controle remoto: a borda ouro "chama atenção para o elemento crucial". */
+.menu-item:focus, .preset:focus {
+  background: var(--blackout);
+  border-left-color: var(--gold);
+  box-shadow: inset 0 0 0 0.25vh var(--gold);
+}
+.menu-item:focus .num, .preset:focus small { color: var(--gold); }
+.menu-item:focus .d { color: var(--white); }
+.menu-item.confirm .t { color: var(--gold); }
+
+.home-connect {
+  align-self: start;
+  margin-top: 14vh;
+  padding: 3vh 2.4vw 2.6vh;
+  border: 1px solid var(--white);
+  text-align: center;
+}
+.home-connect > .label:first-child { font-size: 1.7vh; margin-bottom: 2.6vh; text-align: left; }
+.qr { background: var(--white); padding: 1.4vh; margin: 0 auto; }
+.home .qr { width: 27vh; height: 27vh; }
+.qr img, .qr canvas { width: 100% !important; height: 100% !important; display: block; }
+.qr.missing { display: none; }
+.room-label { font-size: 1.6vh; color: var(--gray); margin-top: 3vh; }
+.room-code {
+  font-family: var(--display);
+  font-size: 12vh;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+  margin: 0.6vh 0 1vh;
+}
+.remote-url { font-size: 2vh; color: var(--gray); }
+.remote-url b { color: var(--white); font-weight: 700; }
+.conn { margin-top: 2.4vh; font-size: 1.5vh; color: var(--gray); display: flex; gap: 1vw; justify-content: center; align-items: center; }
+
+/* ================= MODELOS ================= */
+.presets { padding: 6vh 5vw 14vh; }
+.presets .title { font-size: 8vh; margin-bottom: 4vh; }
+.preset-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.4vw; }
+.preset-col h3 {
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: 1.8vh;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin: 0 0 1.6vh;
+  padding-bottom: 1.2vh;
+  border-bottom: 1px solid var(--tatame);
+}
+.preset {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 1.1vh;
+  padding: 1.3vh 1.2vw;
+  background: var(--tatame);
+  border: 0;
+  border-left: 0.6vh solid var(--tatame);
+  font-family: var(--display);
+  font-size: 3.6vh;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+  text-transform: uppercase;
+  cursor: pointer;
+  outline: 0;
+}
+.preset small { display: block; font-family: var(--mono); font-size: 1.5vh; letter-spacing: 0.12em; color: var(--gray); margin-top: 0.4vh; }
+.preset.current::after { content: "em uso"; float: right; font-family: var(--mono); font-size: 1.4vh; letter-spacing: 0.15em; color: var(--gold); margin-top: 0.8vh; }
+
+/* ================= CRONÔMETRO ================= */
+/* A "caixa": moldura fina na cor da fase, visível do outro lado do tatame. */
+.frame {
+  position: absolute;
+  top: 2vh; right: 2vh; bottom: 2vh; left: 2vh;
+  border: 1.1vh solid var(--tatame);
+  pointer-events: none;
+  transition: border-color 0.3s ease;
+}
+.timer { --phase: var(--white); }
+body.phase-work .timer, body.phase-fight .timer { --phase: var(--gold); }
+body.phase-rest .timer { --phase: var(--belt-blue); }
+body.phase-prep .timer, body.phase-stopwatch .timer { --phase: var(--white); }
+body.status-running .frame { border-color: var(--phase); }
+body.status-paused .frame { border-color: var(--gray); }
+
+.top {
+  position: absolute;
+  top: 5vh; left: 5vw; right: 5vw;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   z-index: 2;
 }
-.round-label { font-size: 6vh; letter-spacing: 0.05em; }
-.top-right { display: flex; gap: 1.5vw; align-items: center; color: var(--muted); }
-.dot { width: 1.6vh; height: 1.6vh; border-radius: 50%; background: #ef4444; display: inline-block; }
-.dot.online { background: #22c55e; }
+.round-label { font-family: var(--display); font-size: 7vh; letter-spacing: 0.08em; line-height: 1; }
+.top-right { display: flex; gap: 1.4vw; align-items: center; font-size: 1.8vh; color: var(--gray); }
+.top-right b { color: var(--white); font-weight: 400; }
+.sound-off { color: var(--white); border: 1px solid var(--white); padding: 0.4vh 0.8vw; }
 
-/* ---------- Timer ---------- */
 .timer-view {
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding-top: 4vh;
+  padding-top: 3vh;
 }
-.phase-label { font-size: 11vh; letter-spacing: 0.08em; line-height: 1; }
-.time {
-  font-size: 30vw; /* fallback para navegadores sem min() */
-  font-size: min(42vh, 30vw);
+.phase-label {
+  font-family: var(--display);
+  font-size: 12vh;
+  letter-spacing: 0.12em;
   line-height: 1;
-  letter-spacing: -0.02em;
-  margin: 1vh 0;
+  color: var(--phase);
 }
-.status-paused .time, .status-paused .match-time { opacity: 0.55; }
-.next-label { font-size: 5vh; color: var(--muted); min-height: 6vh; }
-.bar {
-  width: 80vw;
-  height: 2.2vh;
-  margin-top: 4vh;
-  border-radius: 99px;
-  background: rgba(255, 255, 255, 0.18);
-  overflow: hidden;
+body.status-idle .phase-label, body.status-paused .phase-label { color: var(--white); }
+.time {
+  font-family: var(--display);
+  font-size: 46vw; /* navegadores sem min() */
+  font-size: min(60vh, 46vw);
+  line-height: 0.9;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  margin: 1vh 0 0;
 }
-.status-idle .bar { visibility: hidden; }
-.bar i { display: block; height: 100%; width: 0; background: var(--fg); border-radius: 99px; }
+/* Últimos 10 segundos de combate: o número ganha o ouro. */
+body.final .time, body.final .match-time { color: var(--gold); }
+body.status-paused .time, body.status-paused .match-time { color: var(--gray); }
+.next-label { font-size: 2.4vh; color: var(--gray); min-height: 3.4vh; }
+.bar { width: 58vw; height: 0.9vh; margin-top: 3.4vh; background: var(--tatame); }
+body.status-idle .bar { visibility: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--phase); }
+
+/* Fim: inversão preto ⇄ branco (sem ouro sobre branco). */
+body.phase-done .timer { animation: done-flash 1s steps(1) infinite; }
+body.mode-match.phase-done .timer { animation: none; }
+@keyframes done-flash {
+  0% { background: var(--white); color: var(--blackout); }
+  50% { background: var(--blackout); color: var(--white); }
+}
+body.phase-done .timer .phase-label,
+body.phase-done .timer .time,
+body.phase-done .timer .round-label,
+body.phase-done .timer .next-label { color: inherit; }
+body.phase-done .frame { border-color: currentColor; }
 
 /* ---------- Placar de luta ---------- */
 .match-view {
   height: 100%;
   display: grid;
-  grid-template-rows: 1fr 1fr 0.9fr;
-  gap: 1.5vh;
-  padding: 11vh 3vw 3vh;
+  grid-template-rows: 1fr 1fr 0.95fr;
+  gap: 1.6vh;
+  padding: 13vh 5vw 9vh;
 }
 .athlete {
   display: grid;
-  grid-template-columns: 2.5vw 1fr 13vw 13vw 22vw;
+  grid-template-columns: 1vw 1fr 12vw 12vw 20vw;
   align-items: stretch;
-  gap: 1vw;
-  background: #161b22;
-  border-radius: 1.5vh;
-  overflow: hidden;
-  transition: box-shadow 0.3s ease;
+  gap: 1.4vw;
+  background: var(--tatame);
 }
-.athlete .strip { background: var(--a); }
-.athlete-b .strip { background: var(--b); }
+.athlete .strip { background: var(--gold); }
+.athlete-b .strip { background: var(--white); }
 .athlete .name {
   align-self: center;
-  font-size: 8vh;
+  font-family: var(--display);
+  font-size: 9vh;
+  letter-spacing: 0.04em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   text-transform: uppercase;
+  line-height: 1;
 }
+.winner-tag { display: none; font-size: 1.8vh; color: var(--gold); margin-top: 0.8vh; }
+.athlete.winner { box-shadow: inset 0 0 0 0.5vh var(--gold); }
+.athlete.winner .winner-tag { display: block; }
 .box {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 1vh;
-  margin: 1.5vh 0;
+  margin: 2vh 0;
+  border: 0.3vh solid var(--gray);
 }
-.box small { font-size: 2.6vh; opacity: 0.85; font-family: Arial, sans-serif; font-weight: 700; }
-.box span { font-size: 10vh; line-height: 1; }
-.box.adv { background: var(--adv); }
-.box.pen { background: var(--pen); }
+.box small { font-size: 1.7vh; color: var(--gray); }
+.box span { font-family: var(--display); font-size: 11vh; line-height: 1; }
+.box.adv { border-color: var(--gold); }
+.box.adv span { color: var(--gold); }
 .points {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22vh;
-  background: #f5f7fa;
-  color: #0b0f14;
+  font-family: var(--display);
+  font-size: 24vh;
+  line-height: 1;
+  background: var(--white);
+  color: var(--blackout);
 }
-.athlete.winner { box-shadow: 0 0 0 0.8vh #facc15 inset; }
-.athlete.winner .name::after { content: "  🏆"; }
-.match-clock {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4vw;
-}
-.match-phase { font-size: 8vh; color: var(--muted); }
-.match-time { font-size: 26vh; line-height: 1; }
-.phase-done .match-time { color: #ef4444; }
+.match-clock { display: flex; align-items: center; justify-content: center; gap: 4vw; }
+.match-phase { font-family: var(--display); font-size: 8vh; letter-spacing: 0.12em; color: var(--gray); }
+body.status-running .match-phase { color: var(--gold); }
+.match-time { font-family: var(--display); font-size: 28vh; line-height: 1; }
+body.mode-match.phase-done .match-time { color: var(--white); }
 
-/* ---------- Conexão do celular ---------- */
+/* ---------- Rodapé do cronômetro ---------- */
 .connect {
-  position: fixed;
-  right: 2.5vw;
-  bottom: 3vh;
+  position: absolute;
+  right: 5vw;
+  bottom: 5vh;
   display: flex;
-  gap: 2vw;
+  gap: 1.4vw;
   align-items: center;
-  padding: 2vh 2vw;
-  background: rgba(0, 0, 0, 0.72);
-  border-radius: 2vh;
-  font-family: Arial, sans-serif;
-  font-size: 2.6vh;
+  padding: 1.6vh 1.2vw;
+  background: var(--blackout);
+  border: 1px solid var(--tatame);
   z-index: 3;
 }
-.connect.compact .connect-text { display: none; }
-.connect.compact .qr { width: 14vh; height: 14vh; }
-.qr { width: 22vh; height: 22vh; background: #fff; padding: 1vh; border-radius: 1vh; }
-.qr img, .qr canvas { width: 100% !important; height: 100% !important; display: block; }
-.qr.missing { display: none; }
-.connect-title { font-size: 3.4vh; font-weight: 700; margin-bottom: 1vh; }
-.remote-url { font-weight: 700; color: #facc15; margin: 0.5vh 0; }
+.connect .qr { width: 14vh; height: 14vh; padding: 1vh; }
+.connect .label { font-size: 1.4vh; color: var(--gray); }
+.connect .room-code { font-size: 7vh; margin: 0; }
+body.mode-match .connect { display: none; }
 
-/* ---------- Overlay inicial ---------- */
-.overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(11, 15, 20, 0.96);
-  text-align: center;
-  font-family: Arial, sans-serif;
-}
-.unlock-logo { width: 18vh; height: 18vh; }
-.unlock-box h1 { font-size: 6vh; margin: 2vh 0; font-family: "Arial Black", Arial, sans-serif; }
-.unlock-box p { font-size: 3vh; color: var(--muted); max-width: 70vw; margin: 0 auto 4vh; }
-.unlock-box button {
-  font: inherit;
-  font-size: 4vh;
-  font-weight: 700;
-  padding: 2vh 5vw;
-  border: 0;
-  border-radius: 99px;
-  background: #22c55e;
-  color: #052e16;
-  cursor: pointer;
-}
-.unlock-box button:focus { outline: 0.6vh solid #facc15; outline-offset: 0.6vh; }
+.logo-small { position: absolute; left: 5vw; bottom: 5vh; height: 5vh; width: auto; }
+body.mode-match .logo-small { display: none; }
+body.phase-done .logo-small { display: none; }
 
-.fs-btn {
-  position: fixed;
-  left: 2vw;
-  bottom: 2vh;
-  font-size: 3vh;
-  background: rgba(0, 0, 0, 0.4);
-  color: var(--fg);
-  border: 0;
-  border-radius: 1vh;
-  padding: 0.6vh 1vw;
-  opacity: 0.4;
-  cursor: pointer;
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: 5vh;
+  transform: translateX(-50%);
+  font-size: 1.8vh;
+  color: var(--gray);
+  white-space: nowrap;
+}
+body.status-running .hint { display: none; }
+body.mode-match .hint { bottom: 4vh; }
+.sound-locked {
+  position: absolute;
+  top: 5.6vh;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.7vh;
+  padding: 1vh 1.4vw;
+  border: 1px solid var(--white);
+  white-space: nowrap;
   z-index: 3;
 }
-.fs-btn:hover { opacity: 1; }

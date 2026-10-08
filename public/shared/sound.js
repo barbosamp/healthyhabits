@@ -11,8 +11,12 @@
   function unlock() {
     var AC = root.AudioContext || root.webkitAudioContext;
     if (!AC) return false;
-    if (!ctx) ctx = new AC();
-    if (ctx.state === 'suspended' && ctx.resume) ctx.resume();
+    try {
+      if (!ctx) ctx = new AC();
+      if (ctx.state === 'suspended' && ctx.resume) ctx.resume();
+    } catch (e) {
+      return false; // alguns navegadores de TV falham ao criar o áudio
+    }
     return true;
   }
 

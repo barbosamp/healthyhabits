@@ -191,7 +191,7 @@
 
   function phaseLabel(view) {
     if (view.mode === 'countdown' && view.phase === 'work') return 'TIMER';
-    if (view.mode === 'rounds' && view.phase === 'work') return 'COMBATE!';
+    if (view.mode === 'rounds' && view.phase === 'work') return 'COMBATE';
     return PHASE_LABELS[view.phase] || '';
   }
 

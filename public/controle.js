@@ -9,9 +9,9 @@
   // ---------- Modelos prontos ----------
   var PRESETS = {
     rounds: [
-      { label: 'Rola 5 × 5 min', sub: 'descanso 1 min', s: { work: 300, rest: 60, rounds: 5, prep: 10 } },
-      { label: 'Rola 6 × 6 min', sub: 'descanso 1 min', s: { work: 360, rest: 60, rounds: 6, prep: 10 } },
-      { label: 'Rola rápida 8 × 3 min', sub: 'descanso 30 s', s: { work: 180, rest: 30, rounds: 8, prep: 10 } },
+      { label: 'Combate 5 × 5 min', sub: 'descanso 1 min', s: { work: 300, rest: 60, rounds: 5, prep: 10 } },
+      { label: 'Combate 6 × 6 min', sub: 'descanso 1 min', s: { work: 360, rest: 60, rounds: 6, prep: 10 } },
+      { label: 'Combate rápido 8 × 3 min', sub: 'descanso 30 s', s: { work: 180, rest: 30, rounds: 8, prep: 10 } },
       { label: 'Drill 10 × 2 min', sub: 'troca 15 s', s: { work: 120, rest: 15, rounds: 10, prep: 10 } },
       { label: 'Tabata 8 × 20 s', sub: 'descanso 10 s', s: { work: 20, rest: 10, rounds: 8, prep: 10 } },
       { label: 'Circuito 10 × 45 s', sub: 'descanso 15 s', s: { work: 45, rest: 15, rounds: 10, prep: 10 } }

@@ -5,10 +5,10 @@ manda é o celular (vários celulares podem controlar a mesma TV ao mesmo tempo)
 
 ## Funcionalidades
 
-**Treino em rounds** (rola, drills, circuitos)
+**Treino em rounds** (combates, drills, circuitos)
 - Rounds × tempo de round × descanso × preparação inicial
-- Modelos prontos: Rola 5×5, Rola 6×6, Rola rápida 8×3, Drill 10×2, Tabata 8×20s, Circuito 10×45s
-- Tela muda de cor por fase: 🟧 preparar · 🟩 rola · 🟦 descanso · 🟥 fim
+- Modelos prontos: Combate 5×5, Combate 6×6, Combate rápido 8×3, Drill 10×2, Tabata 8×20s, Circuito 10×45s
+- Tela muda de cor por fase: 🟧 preparar · 🟩 combate · 🟦 descanso · 🟥 fim
 - "Pular fase" (ex.: encerrar o descanso antes)
 
 **Luta com placar**

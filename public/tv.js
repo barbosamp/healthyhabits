@@ -186,24 +186,51 @@
     } catch (e) { /* bloqueado pelo navegador */ }
   }
 
+  var unlocked = false;
   function unlock() {
+    if (unlocked) return;
+    unlocked = true;
+    $('unlock').hidden = true;
+    // O botão escondido não pode continuar com o foco (o OK seguinte iria para ele).
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     window.BJJSound.unlock();
     requestWakeLock();
     if (!document.fullscreenElement && !document.webkitFullscreenElement) toggleFullscreen();
-    $('unlock').hidden = true;
   }
 
-  $('unlockBtn').addEventListener('click', unlock);
-  $('unlock').addEventListener('click', unlock);
-  $('fullscreenBtn').addEventListener('click', toggleFullscreen);
+  function toggleTimer() {
+    conn.send({ type: 'toggle' });
+  }
 
-  // Controle remoto da TV: OK/Enter/Espaço/Play inicia e pausa.
+  $('unlockBtn').addEventListener('click', function (e) { e.stopPropagation(); unlock(); });
+  $('unlock').addEventListener('click', function (e) { e.stopPropagation(); unlock(); });
+  $('fullscreenBtn').addEventListener('click', function (e) { e.stopPropagation(); toggleFullscreen(); });
+
+  // Controle com ponteiro (ex.: Magic Remote da LG): o OK vira um clique na tela.
+  document.addEventListener('click', function () {
+    if (unlocked) toggleTimer();
+  });
+
+  // Teclas que os controles de TV enviam para OK e Play/Pause.
+  // Navegadores antigos de TV não preenchem `e.key`, por isso também o keyCode.
+  var OK_KEYS = { 'Enter': 1, ' ': 1, 'Spacebar': 1, 'Select': 1, 'Accept': 1, 'NumpadEnter': 1 };
+  var PLAY_KEYS = { 'MediaPlayPause': 1, 'MediaPlay': 1, 'MediaPause': 1, 'Play': 1, 'Pause': 1 };
+  var OK_CODES = { 13: 1, 23: 1, 32: 1 };   // Enter, DPAD_CENTER (Android TV), Espaço
+  var PLAY_CODES = { 179: 1, 415: 1, 19: 1, 10252: 1 }; // Play/Pause, Play (webOS/HbbTV), Pause, Tizen
+
+  function isOk(e) { return OK_KEYS[e.key] === 1 || OK_CODES[e.keyCode] === 1; }
+  function isPlay(e) { return PLAY_KEYS[e.key] === 1 || PLAY_CODES[e.keyCode] === 1; }
+
+  // Segurar o botão gera várias teclas seguidas: só a primeira conta.
+  var lastToggle = 0;
   document.addEventListener('keydown', function (e) {
-    if (!$('unlock').hidden) return;
-    var k = e.key;
-    if (k === 'Enter' || k === ' ' || k === 'MediaPlayPause' || e.keyCode === 179 || e.keyCode === 415 || e.keyCode === 19) {
-      e.preventDefault();
-      conn.send({ type: 'toggle' });
-    }
+    if (!isOk(e) && !isPlay(e)) return;
+    e.preventDefault(); // evita o "clique" duplicado no elemento focado
+    if (e.repeat) return;
+    if (!unlocked) { unlock(); return; }
+    var now = Date.now();
+    if (now - lastToggle < 400) return;
+    lastToggle = now;
+    toggleTimer();
   });
 })();

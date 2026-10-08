@@ -80,7 +80,15 @@
     }
 
     function open() {
-      peer = new root.Peer(tvPeerId(code), PEER_OPTIONS);
+      // Sem PeerJS/WebRTC (navegador de TV antigo) a TV continua funcionando
+      // sozinha, pelo controle remoto; só não aceita celulares.
+      try {
+        peer = new root.Peer(tvPeerId(code), PEER_OPTIONS);
+      } catch (e) {
+        peer = null;
+        opts.onStatus('offline');
+        return;
+      }
       peer.on('open', function () {
         takenAttempts = 0;
         opts.onStatus('online');

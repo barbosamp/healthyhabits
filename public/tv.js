@@ -32,7 +32,7 @@
   function readSavedState(code) {
     var s = null;
     try { s = JSON.parse(load('bjj-state')); } catch (e) { /* estado corrompido */ }
-    return window.BJJState.isValidState(s) && s.code === code ? s : null;
+    return window.BJJState.isValidState(s) && s.code === code ? window.BJJState.upgrade(s) : null;
   }
 
   function renderQr(id, code, size) {
@@ -113,7 +113,7 @@
       lastFocus[screen] = document.activeElement;
     }
     screen = name;
-    ['home', 'presets', 'timer'].forEach(function (n) { $(n).hidden = n !== name; });
+    ['home', 'presets', 'wheel', 'timer'].forEach(function (n) { $(n).hidden = n !== name; });
     document.body.setAttribute('data-screen', name);
     cancelCodeConfirm();
     if (name === 'home') updateMenu();
@@ -141,7 +141,7 @@
     if (screen === 'timer') {
       if (history.state && history.state.bjj === 'timer') history.back();
       else show('home');
-    } else if (screen === 'presets') {
+    } else if (screen === 'presets' || screen === 'wheel') {
       show('home');
     }
   }
@@ -157,6 +157,14 @@
     var reconfigured = state.mode !== prevState.mode ||
       JSON.stringify(state.settings) !== JSON.stringify(prevState.settings);
     if (started || reconfigured) openTimer();
+
+    // Giro novo (pela TV, pelo celular ou automático): mostra a roleta girando.
+    var spin = state.wheel.spin;
+    var prevSpin = prevState.wheel && prevState.wheel.spin;
+    if (spin && (!prevSpin || spin.id !== prevSpin.id)) {
+      if (screen === 'timer') overlayUntil = spin.at + SPIN_MS + 2500;
+      else if (screen !== 'wheel') show('wheel');
+    }
   }
 
   // ---------- Menu inicial ----------
@@ -180,13 +188,14 @@
     setText('miTimerDesc', idle ? describe(state) : STATUS_WORD[view.status] + ' · ' + T.formatView(view));
     $('miReset').hidden = idle;
     setText('miSoundDesc', state.sound ? 'Ligado' : 'Desligado');
+    setText('miWheelDesc', state.wheel.current ? 'Regra: ' + state.wheel.current : 'Sorteie a regra do combate');
     if (!codeConfirm) {
       setText('miCodeTitle', 'Novo código de sala');
       setText('miCodeDesc', 'Celular não encontra a TV? Gere outro');
     }
     // Numeração e posição na grade (2 colunas) só dos itens visíveis.
     var n = 0;
-    $$('.menu-item').forEach(function (el) {
+    $$('#menu .menu-item').forEach(function (el) {
       if (el.hidden) return;
       el.setAttribute('data-col', String(n % 2));
       el.setAttribute('data-row', String(Math.floor(n / 2)));
@@ -211,6 +220,7 @@
   var ACTIONS = {
     timer: openTimer,
     presets: function () { show('presets'); },
+    wheel: function () { show('wheel'); },
     reset: function () { send({ type: 'reset' }); updateMenu(); },
     sound: function () { send({ type: 'setSound', on: !state.sound }); updateMenu(); },
     code: function () {
@@ -233,7 +243,7 @@
     fullscreen: function () { toggleFullscreen(); }
   };
 
-  $$('.menu-item').forEach(function (el) {
+  $$('#menu .menu-item').forEach(function (el) {
     el.addEventListener('click', function (e) {
       e.stopPropagation(); // senão o clique chega ao cronômetro recém-aberto e o inicia
       unlock();
@@ -286,6 +296,61 @@
       var current = state && state.mode === p.mode && JSON.stringify(state.settings[p.mode]) === JSON.stringify(p.s);
       b.className = 'preset' + (current ? ' current' : '');
     });
+  }
+
+  // ---------- Roleta ----------
+  var SPIN_MS = window.BJJState.SPIN_MS;
+  var wheelMain = window.BJJWheel.create($('wheelMain'));
+  var wheelOverlay = window.BJJWheel.create($('wheelOverlay'));
+  var overlayUntil = 0;   // relógio da TV até quando o giro aparece por cima do cronômetro
+  var lastAutoSegment = -1;
+
+  var WHEEL_ACTIONS = {
+    spin: function () { send({ type: 'spin' }); },
+    start: function () {
+      if (state.clock.running) openTimer();
+      else send({ type: 'start' }); // followRemote abre o cronômetro
+    },
+    auto: function () { send({ type: 'setWheelAuto', on: !state.wheel.auto }); },
+    clear: function () { send({ type: 'clearWheel' }); }
+  };
+
+  $$('[data-wheel]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      e.stopPropagation();
+      unlock();
+      WHEEL_ACTIONS[el.getAttribute('data-wheel')]();
+    });
+  });
+
+  function spinSound(name) {
+    return function () { if (state.sound) window.BJJSound.play(name); };
+  }
+
+  function renderWheel(target, now) {
+    var w = state.wheel;
+    target.setOptions(w.options);
+    if (w.spin) target.spin(w.spin, now - w.spin.at, SPIN_MS, spinSound('spinTick'), spinSound('reveal'));
+    var spinning = w.spin && now - w.spin.at < SPIN_MS;
+    var result = spinning ? 'Girando…' : (w.current || '—');
+    setText('wheelResult', result);
+    setText('overlayResult', result);
+    setText('wheelAutoDesc', w.auto ? 'Ligado · sorteia no início e em cada descanso' : 'Desligado');
+    setText('wheelStartDesc', describe(state));
+  }
+
+  // "Girar a cada round": sorteia ao começar o treino e ao entrar em cada descanso,
+  // para a turma ver a regra antes do round. Só a TV faz isso (é ela que guarda o estado).
+  function autoSpin(prev, view) {
+    if (view.status === 'idle') { lastAutoSegment = -1; return; }
+    if (!state.wheel.auto || state.mode !== 'rounds' || !prev || view.status !== 'running') return;
+    var started = prev.status === 'idle';
+    var entered = started || (prev.status === 'running' && view.segmentIndex !== prev.segmentIndex);
+    if (!entered || view.segmentIndex === lastAutoSegment) return;
+    if (!started && view.phase !== 'rest') return;
+    lastAutoSegment = view.segmentIndex;
+    // Fora do render: o comando dispara um novo render na hora.
+    setTimeout(function () { send({ type: 'spin' }); }, 0);
   }
 
   // ---------- Navegação pelas setas ----------
@@ -341,7 +406,9 @@
 
     if (screen === 'timer') renderTimer(view);
     else if (screen === 'home') updateMenu();
+    else if (screen === 'wheel') renderWheel(wheelMain, conn.now());
 
+    autoSpin(prevView, view);
     if (state.sound) playSounds(prevView, view);
     prevView = view;
   }
@@ -349,6 +416,13 @@
   var HINT_OK = { idle: 'iniciar', paused: 'continuar', done: 'recomeçar', running: 'pausar' };
 
   function renderTimer(view) {
+    var now = conn.now();
+    var overlay = now < overlayUntil;
+    $('spinOverlay').hidden = !overlay;
+    if (overlay) renderWheel(wheelOverlay, now);
+    $('ruleBadge').hidden = overlay || !state.wheel.current;
+    if (state.wheel.current) setText('ruleText', state.wheel.current);
+
     var isMatch = state.mode === 'match';
     $('timerView').hidden = isMatch;
     $('matchView').hidden = !isMatch;

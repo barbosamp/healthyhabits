@@ -18,6 +18,7 @@ test('servidor local entrega a TV, o controle e os scripts', async (t) => {
     ['/shared/state.js', 'applyCommand'],
     ['/vendor/peerjs-1.5.4.min.js', 'Peer'],
     ['/shared/presets.js', 'Combate 5'],
+    ['/wheel.js', 'BJJWheel'],
     ['/brand.css', 'Bebas Neue']
   ];
   for (const [path, needle] of pages) {

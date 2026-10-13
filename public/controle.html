@@ -38,6 +38,7 @@
         <span id="pvRound" class="label"></span>
       </div>
       <div id="pvTime" class="pv-time">0:00</div>
+      <div id="pvRule" class="pv-rule label" hidden></div>
       <div id="pvScore" class="pv-score" hidden>
         <span class="pv-a"><i></i><b id="pvA">0</b></span>
         <span class="pv-b"><i></i><b id="pvB">0</b></span>
@@ -61,7 +62,8 @@
       <button data-tab="rounds">Treino</button>
       <button data-tab="match">Luta</button>
       <button data-tab="countdown">Timer</button>
-      <button data-tab="stopwatch">Cronômetro</button>
+      <button data-tab="stopwatch">Livre</button>
+      <button data-tab="wheel">Roleta</button>
     </nav>
 
     <!-- Treino em rounds -->
@@ -135,6 +137,26 @@
       <button class="apply" data-apply="stopwatch">Usar na TV</button>
     </section>
 
+    <!-- Roleta: sorteia a regra do combate -->
+    <section class="panel" data-panel="wheel">
+      <div class="wheel-card">
+        <div class="label">Regra do combate</div>
+        <div id="wheelResult" class="wheel-result">—</div>
+      </div>
+      <button id="spinBtn" class="big start">GIRAR A ROLETA</button>
+      <label class="switch wheel-auto"><input type="checkbox" id="wheelAuto"> Girar a cada round (no início e em cada descanso)</label>
+      <button id="clearWheelBtn" class="ghost">Sem regra</button>
+
+      <h2 class="label mark">Opções da roleta</h2>
+      <ul id="wheelOptions" class="wheel-options"></ul>
+      <form id="wheelAddForm" class="wheel-add">
+        <input id="wheelAddInput" maxlength="28" placeholder="Nova opção (ex.: só raspagem)" autocomplete="off">
+        <button type="submit">Adicionar</button>
+      </form>
+      <p class="hint" id="wheelHint"></p>
+      <button id="wheelDefaultsBtn" class="ghost">Restaurar opções padrão</button>
+    </section>
+
     <footer class="footer">
       <label class="switch"><input type="checkbox" id="soundToggle"> Som na TV</label>
       <button id="leaveBtn" class="ghost small">Trocar sala</button>
@@ -147,6 +169,7 @@
   <script src="/vendor/peerjs-1.5.4.min.js"></script>
   <script src="/shared/timer.js"></script>
   <script src="/shared/presets.js"></script>
+  <script src="/shared/state.js"></script>
   <script src="/shared/sync.js"></script>
   <script src="/controle.js"></script>
 </body>

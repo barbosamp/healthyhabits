@@ -18,11 +18,14 @@
       <img src="/img/blackbox-logo-branco.png" alt="blackbox. Academia de Jiu Jitsu" class="logo">
 
       <div class="label mark kicker">Cronômetro do tatame</div>
-      <h1 class="title">Entre na<br><span>sua caixa.</span></h1>
+      <h1 class="title">Entre na <span>sua caixa.</span></h1>
 
       <nav id="menu" class="menu" aria-label="Menu">
         <button class="menu-item" data-nav data-action="timer">
           <span class="num"></span><b class="t" id="miTimerTitle">Cronômetro</b><span class="d" id="miTimerDesc"></span>
+        </button>
+        <button class="menu-item" data-nav data-action="wheel">
+          <span class="num"></span><b class="t">Roleta</b><span class="d" id="miWheelDesc">Sorteie a regra do combate</span>
         </button>
         <button class="menu-item" data-nav data-action="presets">
           <span class="num"></span><b class="t">Modelos de treino</b><span class="d">Combate, luta por faixa e timer</span>
@@ -71,6 +74,39 @@
     <footer class="foot">
       <span class="label">O treino começa quando você aperta OK no cronômetro</span>
       <span class="label keys"><kbd>◀▲▼▶</kbd> navegar <kbd>OK</kbd> usar <kbd>VOLTAR</kbd> menu</span>
+    </footer>
+  </section>
+
+  <!-- ============ ROLETA ============ -->
+  <section id="wheel" class="screen wheel-screen" hidden>
+    <div class="wheel-wrap">
+      <div id="wheelMain" class="wheel"></div>
+    </div>
+    <div class="wheel-side">
+      <div class="label mark kicker">Roleta do tatame</div>
+      <h2 class="title">Regra do <span>combate.</span></h2>
+      <div class="wheel-result">
+        <div class="label">Sorteado</div>
+        <div id="wheelResult" class="wheel-result-text">—</div>
+      </div>
+      <nav class="wheel-menu" aria-label="Roleta">
+        <button class="menu-item" data-nav data-col="0" data-row="0" data-wheel="spin">
+          <span class="num">01</span><b class="t">Girar a roleta</b><span class="d">Sorteia uma regra nova</span>
+        </button>
+        <button class="menu-item" data-nav data-col="0" data-row="1" data-wheel="start">
+          <span class="num">02</span><b class="t">Começar o combate</b><span class="d" id="wheelStartDesc"></span>
+        </button>
+        <button class="menu-item" data-nav data-col="0" data-row="2" data-wheel="auto">
+          <span class="num">03</span><b class="t">Girar a cada round</b><span class="d" id="wheelAutoDesc"></span>
+        </button>
+        <button class="menu-item" data-nav data-col="0" data-row="3" data-wheel="clear">
+          <span class="num">04</span><b class="t">Sem regra</b><span class="d">Tira a regra do cronômetro</span>
+        </button>
+      </nav>
+    </div>
+    <footer class="foot">
+      <span class="label">As opções da roleta são editadas pelo celular</span>
+      <span class="label keys"><kbd>▲▼</kbd> navegar <kbd>OK</kbd> selecionar <kbd>VOLTAR</kbd> menu</span>
     </footer>
   </section>
 
@@ -128,6 +164,17 @@
 
     <img src="/img/blackbox-logo-branco.png" alt="blackbox." class="logo-small">
 
+    <div id="ruleBadge" class="rule-badge" hidden><span class="label">Regra</span><b id="ruleText"></b></div>
+
+    <!-- Giro da roleta por cima do cronômetro (pelo celular ou "girar a cada round") -->
+    <div id="spinOverlay" class="spin-overlay" hidden>
+      <div id="wheelOverlay" class="wheel"></div>
+      <div class="spin-overlay-side">
+        <div class="label mark kicker">Regra do próximo round</div>
+        <div id="overlayResult" class="wheel-result-text"></div>
+      </div>
+    </div>
+
     <div id="soundLocked" class="sound-locked label" hidden>Aperte qualquer seta do controle para liberar o som</div>
     <div id="timerHint" class="hint label"><kbd>OK</kbd> <span id="hintOk">iniciar</span> <kbd>VOLTAR</kbd> menu</div>
   </section>
@@ -135,10 +182,11 @@
   <script src="/vendor/qrcode-1.0.0.min.js"></script>
   <script src="/vendor/peerjs-1.5.4.min.js"></script>
   <script src="/shared/timer.js"></script>
-  <script src="/shared/state.js"></script>
   <script src="/shared/presets.js"></script>
+  <script src="/shared/state.js"></script>
   <script src="/shared/sync.js"></script>
   <script src="/shared/sound.js"></script>
+  <script src="/wheel.js"></script>
   <script src="/tv.js"></script>
 </body>
 </html>

@@ -238,3 +238,49 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outl
   font-weight: 700;
   z-index: 10;
 }
+
+/* ---------- Roleta ---------- */
+.tabs { grid-template-columns: repeat(5, 1fr); }
+.wheel-card { background: var(--tatame); border-left: 6px solid var(--gold); padding: 14px 16px 12px; margin: 14px 0 10px; }
+.wheel-card .label { font-size: 11px; color: var(--gray); }
+.wheel-result {
+  font-family: var(--display);
+  font-size: 44px;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-top: 6px;
+  min-height: 46px;
+}
+.wheel-result.spinning { color: var(--white); animation: spin-blink 0.5s steps(1) infinite; }
+@keyframes spin-blink { 50% { color: var(--gray); } }
+#spinBtn { width: 100%; }
+.wheel-auto { margin: 14px 0 4px; font-size: 14px; line-height: 1.35; }
+.wheel-options { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.wheel-options li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--tatame);
+  padding: 4px 4px 4px 14px;
+  font-family: var(--display);
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.wheel-options button { background: var(--blackout); width: 44px; padding: 8px 0; font-size: 22px; color: var(--gray); }
+.wheel-add { display: flex; gap: 8px; margin-top: 10px; }
+.wheel-add input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 16px;
+  color: var(--white);
+  background: var(--blackout);
+  border: 1px solid var(--gray);
+  border-radius: 0;
+  padding: 12px;
+}
+.wheel-add button { background: var(--gold); color: var(--blackout); padding: 12px 14px; }
+.pv-rule { font-size: 11px; color: var(--gold); padding-bottom: 8px; }

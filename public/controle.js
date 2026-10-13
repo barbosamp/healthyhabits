@@ -189,6 +189,72 @@
     if (window.confirm('Zerar o placar dos dois atletas?')) send({ type: 'resetScore' });
   });
 
+  // ---------- Roleta ----------
+  var S = window.BJJState;
+  var wheelKey = null;
+
+  function wheelOptions() { return state ? state.wheel.options.slice() : []; }
+
+  function setWheelOptions(options) { send({ type: 'setWheelOptions', options: options }); }
+
+  function renderWheelOptions() {
+    var options = state.wheel.options;
+    var key = options.join('\n');
+    if (key === wheelKey) return; // só redesenha quando a lista muda
+    wheelKey = key;
+    var list = $('wheelOptions');
+    list.innerHTML = '';
+    options.forEach(function (text, i) {
+      var li = document.createElement('li');
+      var span = document.createElement('span');
+      span.textContent = text;
+      var del = document.createElement('button');
+      del.textContent = '×';
+      del.setAttribute('aria-label', 'Remover ' + text);
+      del.disabled = options.length <= S.WHEEL_MIN;
+      del.addEventListener('click', function () {
+        var next = wheelOptions();
+        next.splice(i, 1);
+        setWheelOptions(next);
+      });
+      li.appendChild(span);
+      li.appendChild(del);
+      list.appendChild(li);
+    });
+    $('wheelHint').textContent = options.length + ' de ' + S.WHEEL_MAX + ' opções · mínimo ' + S.WHEEL_MIN;
+  }
+
+  $('spinBtn').addEventListener('click', function () { send({ type: 'spin' }); });
+  $('clearWheelBtn').addEventListener('click', function () { send({ type: 'clearWheel' }); });
+  $('wheelAuto').addEventListener('change', function () { send({ type: 'setWheelAuto', on: this.checked }); });
+  $('wheelDefaultsBtn').addEventListener('click', function () {
+    if (window.confirm('Voltar para as opções padrão da roleta?')) setWheelOptions(window.BJJPresets.wheel.slice());
+  });
+  $('wheelAddForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var input = $('wheelAddInput');
+    var text = input.value.replace(/\s+/g, ' ').trim();
+    if (!text) return;
+    var options = wheelOptions();
+    if (options.length >= S.WHEEL_MAX) return toast('A roleta aceita no máximo ' + S.WHEEL_MAX + ' opções');
+    var exists = options.some(function (o) { return o.toLowerCase() === text.toLowerCase(); });
+    if (exists) return toast('Essa opção já está na roleta');
+    setWheelOptions(options.concat([text]));
+    input.value = '';
+  });
+
+  function renderWheel() {
+    var w = state.wheel;
+    var spinning = !!(w.spin && conn.now() - w.spin.at < S.SPIN_MS);
+    $('wheelResult').textContent = spinning ? 'Girando…' : (w.current || '—');
+    $('wheelResult').className = 'wheel-result' + (spinning ? ' spinning' : '');
+    $('spinBtn').disabled = spinning;
+    $('wheelAuto').checked = w.auto;
+    $('clearWheelBtn').disabled = !w.current;
+    $('pvRule').hidden = !w.current || spinning;
+    $('pvRule').textContent = 'Regra · ' + (w.current || '');
+  }
+
   $('soundToggle').addEventListener('change', function () { send({ type: 'setSound', on: this.checked }); });
   $('leaveBtn').addEventListener('click', function () { location.search = ''; });
 
@@ -211,6 +277,7 @@
       var input = $$('.name-input', card)[0];
       if (document.activeElement !== input) input.value = a.name;
     });
+    renderWheelOptions();
     tick();
   }
 
@@ -239,6 +306,7 @@
     btn.className = 'big ' + (running ? 'pause' : 'start');
     $('skipBtn').disabled = state.mode === 'stopwatch' || view.status === 'done';
     $('adjustRow').hidden = state.mode === 'rounds';
+    renderWheel();
   }
 
   setInterval(tick, 250);

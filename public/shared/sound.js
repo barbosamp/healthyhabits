@@ -46,6 +46,10 @@
     start: function () { tone(1046, 0, 0.7, 'square', 0.4); },
     // Início do descanso: dois tons descendo.
     rest: function () { tone(660, 0, 0.3, 'triangle', 0.5); tone(440, 0.35, 0.5, 'triangle', 0.5); },
+    // Roleta: "tic" de cada fatia passando pela seta.
+    spinTick: function () { tone(1500, 0, 0.03, 'square', 0.18); },
+    // Roleta parou: três notas subindo.
+    reveal: function () { tone(523, 0, 0.14, 'triangle', 0.5); tone(659, 0.14, 0.14, 'triangle', 0.5); tone(784, 0.28, 0.45, 'triangle', 0.5); },
     // Fim: buzina.
     end: function () {
       tone(220, 0, 1.2, 'sawtooth', 0.35);

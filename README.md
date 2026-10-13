@@ -21,6 +21,14 @@ controlar a mesma TV ao mesmo tempo).
 
 **Timer** (contagem regressiva) e **Cronômetro livre** (conta para cima)
 
+**Roleta** (jogo da regra do combate)
+- Sorteia a regra que a turma vai seguir: só finalização, só pontuação, só queda, chave de pé,
+  chave de braço, pescoço, no-gi. O professor edita as opções pelo celular (de 2 a 12)
+- Gira pelo controle da TV (menu → Roleta) ou pelo celular (aba Roleta); nunca repete a anterior
+- A regra sorteada fica no topo do cronômetro durante o round
+- **Girar a cada round**: no treino em rounds, sorteia ao iniciar e em cada descanso — a roleta
+  aparece por cima do cronômetro e a turma já sabe a regra do próximo round
+
 **Sons** gerados no navegador: bip de 10 segundos, contagem 3-2-1 antes de cada
 round, sinal de início, sinal de descanso e buzina de fim. Dá para desligar pelo celular.
 
@@ -114,7 +122,8 @@ public/controle.html   controle pelo celular
 public/brand.css       paleta, fontes e elementos da identidade Blackbox
 public/fonts/          Bebas Neue, DM Sans e Space Mono (SIL OFL)
 public/img/            logo oficial Blackbox (versão branca)
-public/shared/presets.js modelos prontos (TV e celular)
+public/shared/presets.js modelos prontos e opções padrão da roleta (TV e celular)
+public/wheel.js        desenho e animação da roleta (TV)
 public/shared/timer.js lógica pura do cronômetro (usada na TV e no celular)
 public/shared/state.js estado da sala e validação dos comandos (roda na TV)
 public/shared/sync.js  conexão TV ⇄ celular via WebRTC (PeerJS)
@@ -138,3 +147,4 @@ O celular envia para a TV mensagens `{"kind":"cmd","id":1,"cmd":{...}}`. Comando
 | Placar | `{"type":"score","athlete":"a","field":"points","delta":2}` (`advantages`, `penalties`) |
 | Nomes | `{"type":"setNames","a":"Marcos","b":"João"}` |
 | Zerar placar / som | `{"type":"resetScore"}` · `{"type":"setSound","on":false}` |
+| Roleta | `{"type":"spin"}` · `{"type":"setWheelOptions","options":["Só queda","No-gi"]}` · `{"type":"setWheelAuto","on":true}` · `{"type":"clearWheel"}` |

@@ -27,6 +27,8 @@
       { label: 'Preta', sub: '10 min', s: { duration: 600 } },
       { label: 'Infantil', sub: '4 min', s: { duration: 240 } }
     ],
+    // Opções iniciais da roleta (o professor pode editar pelo celular).
+    wheel: ['Só finalização', 'Só pontuação', 'Só queda', 'Chave de pé', 'Chave de braço', 'Pescoço', 'No-gi'],
     countdown: [
       { label: '1 min', s: { duration: 60 } },
       { label: '2 min', s: { duration: 120 } },

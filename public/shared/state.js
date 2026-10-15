@@ -4,14 +4,24 @@
  * recebe o estado de volta. Também é carregado pelos testes em Node.
  */
 (function (root, factory) {
-  var api = factory(typeof module === 'object' && module.exports ? require('./timer.js') : root.BJJTimer);
-  if (typeof module === 'object' && module.exports) module.exports = api;
+  var node = typeof module === 'object' && module.exports;
+  var api = node
+    ? factory(require('./timer.js'), require('./presets.js'))
+    : factory(root.BJJTimer, root.BJJPresets);
+  if (node) module.exports = api;
   else root.BJJState = api;
-})(typeof self !== 'undefined' ? self : this, function (T) {
+})(typeof self !== 'undefined' ? self : this, function (T, P) {
   'use strict';
 
   var SCORE_FIELDS = ['points', 'advantages', 'penalties'];
   var MAX_NAME = 24;
+
+  // Roleta: de 2 a 12 opções, cada uma com até 28 caracteres.
+  var WHEEL_MIN = 2;
+  var WHEEL_MAX = 12;
+  var WHEEL_TEXT = 28;
+  /** Duração da animação do giro (ms); TV e celular revelam o resultado depois disso. */
+  var SPIN_MS = 5000;
 
   function clone(obj) {
     return JSON.parse(JSON.stringify(obj));
@@ -19,6 +29,17 @@
 
   function athlete(name) {
     return { name: name, points: 0, advantages: 0, penalties: 0 };
+  }
+
+  function createWheel() {
+    // current: regra sorteada em vigor (ou null) · spin: último giro {id, index, option, at}
+    return { options: P.wheel.slice(), auto: false, current: null, spin: null };
+  }
+
+  /** Estados salvos antes da roleta existir ganham a roleta padrão. */
+  function upgrade(s) {
+    if (s && typeof s === 'object' && !s.wheel) s.wheel = createWheel();
+    return s;
   }
 
   function createRoomState(code) {
@@ -29,7 +50,7 @@
       settings: clone(T.DEFAULT_SETTINGS),
       clock: { running: false, startedAt: 0, accumulated: 0 },
       match: { a: athlete('Atleta 1'), b: athlete('Atleta 2') },
-      sound: true
+      wheel: createWheel()
     };
   }
 
@@ -162,9 +183,44 @@
       });
     },
 
-    setSound: function (state, cmd) {
+    // Sorteia uma opção da roleta. Nunca repete a do giro anterior.
+    spin: function (state, cmd, now, random) {
+      var w = state.wheel;
+      var choices = [];
+      for (var i = 0; i < w.options.length; i++) {
+        if (!w.spin || w.options[i] !== w.spin.option) choices.push(i);
+      }
+      var index = choices[Math.floor(random() * choices.length) % choices.length];
+      w.spin = { id: w.spin ? w.spin.id + 1 : 1, index: index, option: w.options[index], at: now };
+      w.current = w.options[index];
+    },
+
+    setWheelOptions: function (state, cmd) {
+      if (!Array.isArray(cmd.options)) fail('options deve ser uma lista');
+      var seen = {};
+      var options = [];
+      cmd.options.forEach(function (o) {
+        if (typeof o !== 'string') fail('opção inválida');
+        var text = o.trim().replace(/\s+/g, ' ').slice(0, WHEEL_TEXT);
+        var key = text.toLowerCase();
+        if (!text || seen[key]) return; // ignora vazias e repetidas
+        seen[key] = 1;
+        options.push(text);
+      });
+      if (options.length < WHEEL_MIN || options.length > WHEEL_MAX) {
+        fail('a roleta precisa de ' + WHEEL_MIN + ' a ' + WHEEL_MAX + ' opções');
+      }
+      state.wheel.options = options;
+      state.wheel.spin = null; // o giro antigo apontava para a lista anterior
+    },
+
+    setWheelAuto: function (state, cmd) {
       if (typeof cmd.on !== 'boolean') fail('on deve ser booleano');
-      state.sound = cmd.on;
+      state.wheel.auto = cmd.on;
+    },
+
+    clearWheel: function (state) {
+      state.wheel.current = null;
     }
   };
 
@@ -172,11 +228,11 @@
    * Aplica um comando e devolve um NOVO estado (o original não é alterado).
    * Lança CommandError para comandos inválidos.
    */
-  function applyCommand(state, cmd, now) {
+  function applyCommand(state, cmd, now, random) {
     if (!cmd || typeof cmd !== 'object' || typeof cmd.type !== 'string') fail('comando inválido');
     if (!Object.prototype.hasOwnProperty.call(handlers, cmd.type)) fail('comando desconhecido: ' + cmd.type);
-    var next = clone(state);
-    handlers[cmd.type](next, cmd, now);
+    var next = upgrade(clone(state));
+    handlers[cmd.type](next, cmd, now, random || Math.random);
     next.version = state.version + 1;
     return next;
   }
@@ -190,6 +246,10 @@
 
   return {
     createRoomState: createRoomState,
+    upgrade: upgrade,
+    SPIN_MS: SPIN_MS,
+    WHEEL_MIN: WHEEL_MIN,
+    WHEEL_MAX: WHEEL_MAX,
     applyCommand: applyCommand,
     isValidState: isValidState,
     CommandError: CommandError

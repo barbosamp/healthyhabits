@@ -6,34 +6,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
 
-  // ---------- Modelos prontos ----------
-  var PRESETS = {
-    rounds: [
-      { label: 'Combate 5 × 5 min', sub: 'descanso 1 min', s: { work: 300, rest: 60, rounds: 5, prep: 10 } },
-      { label: 'Combate 6 × 6 min', sub: 'descanso 1 min', s: { work: 360, rest: 60, rounds: 6, prep: 10 } },
-      { label: 'Combate rápido 8 × 3 min', sub: 'descanso 30 s', s: { work: 180, rest: 30, rounds: 8, prep: 10 } },
-      { label: 'Drill 10 × 2 min', sub: 'troca 15 s', s: { work: 120, rest: 15, rounds: 10, prep: 10 } },
-      { label: 'Tabata 8 × 20 s', sub: 'descanso 10 s', s: { work: 20, rest: 10, rounds: 8, prep: 10 } },
-      { label: 'Circuito 10 × 45 s', sub: 'descanso 15 s', s: { work: 45, rest: 15, rounds: 10, prep: 10 } }
-    ],
-    // Tempos de luta adulto (referência IBJJF).
-    match: [
-      { label: 'Branca', sub: '5 min', s: { duration: 300 } },
-      { label: 'Azul', sub: '6 min', s: { duration: 360 } },
-      { label: 'Roxa', sub: '7 min', s: { duration: 420 } },
-      { label: 'Marrom', sub: '8 min', s: { duration: 480 } },
-      { label: 'Preta', sub: '10 min', s: { duration: 600 } },
-      { label: 'Infantil', sub: '4 min', s: { duration: 240 } }
-    ],
-    countdown: [
-      { label: '1 min', s: { duration: 60 } },
-      { label: '2 min', s: { duration: 120 } },
-      { label: '3 min', s: { duration: 180 } },
-      { label: '5 min', s: { duration: 300 } },
-      { label: '10 min', s: { duration: 600 } },
-      { label: '15 min', s: { duration: 900 } }
-    ]
-  };
+  var PRESETS = window.BJJPresets;
 
   var STEPPERS = {
     rounds: [
@@ -71,15 +44,17 @@
   var STATUS_TEXT = {
     connecting: 'Procurando a TV…',
     online: 'TV conectada',
+    relay: 'TV conectada · modo compatível',
     offline: 'Sem conexão',
-    notfound: 'TV com este código não está aberta'
+    notfound: 'TV não encontrada. Confira se a TV mostra a sala ' + code
   };
   var conn = window.BJJSync.connect(code, {
     onState: function (s) { state = s; onState(); },
     onStatus: function (s) {
-      $('connDot').className = 'dot' + (s === 'online' ? ' online' : '');
+      var ok = s === 'online' || s === 'relay';
+      $('connDot').className = 'dot' + (ok ? ' online' : '');
       $('tvStatus').textContent = STATUS_TEXT[s] || '';
-      $('tvStatus').style.color = s === 'online' ? '' : '#f87171';
+      $('tvStatus').className = 'tv-status' + (ok ? '' : ' warn');
     }
   });
 
@@ -124,8 +99,10 @@
     });
   }
 
-  function buildSteppers(mode) {
-    var box = $(mode + 'Steppers');
+  // O mesmo modo pode ter campos em mais de uma aba (ex.: rounds em Treino e em Roleta).
+  function buildSteppers(mode, boxId) {
+    var box = $(boxId || mode + 'Steppers');
+    box.setAttribute('data-mode', mode);
     STEPPERS[mode].forEach(function (cfg) {
       var row = document.createElement('div');
       row.className = 'stepper';
@@ -150,11 +127,11 @@
   }
 
   function renderSteppers(mode) {
-    $$('output', $(mode + 'Steppers')).forEach(function (out) {
+    $$('.steppers[data-mode="' + mode + '"] output').forEach(function (out) {
       var key = out.getAttribute('data-key');
       var cfg = STEPPERS[mode].filter(function (c) { return c.key === key; })[0];
       var v = drafts[mode][key];
-      out.textContent = cfg.time ? (v === 0 ? '—' : T.formatMs(v * 1000)) : String(v);
+      out.textContent = cfg.time ? (v === 0 ? 'Sem' : T.formatMs(v * 1000)) : String(v);
     });
   }
 
@@ -162,6 +139,7 @@
     buildPresets(mode);
     buildSteppers(mode);
   });
+  buildSteppers('rounds', 'wheelSteppers');
 
   $$('[data-apply]').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -214,7 +192,72 @@
     if (window.confirm('Zerar o placar dos dois atletas?')) send({ type: 'resetScore' });
   });
 
-  $('soundToggle').addEventListener('change', function () { send({ type: 'setSound', on: this.checked }); });
+  // ---------- Roleta ----------
+  var S = window.BJJState;
+  var wheelKey = null;
+
+  function wheelOptions() { return state ? state.wheel.options.slice() : []; }
+
+  function setWheelOptions(options) { send({ type: 'setWheelOptions', options: options }); }
+
+  function renderWheelOptions() {
+    var options = state.wheel.options;
+    var key = options.join('\n');
+    if (key === wheelKey) return; // só redesenha quando a lista muda
+    wheelKey = key;
+    var list = $('wheelOptions');
+    list.innerHTML = '';
+    options.forEach(function (text, i) {
+      var li = document.createElement('li');
+      var span = document.createElement('span');
+      span.textContent = text;
+      var del = document.createElement('button');
+      del.textContent = '×';
+      del.setAttribute('aria-label', 'Remover ' + text);
+      del.disabled = options.length <= S.WHEEL_MIN;
+      del.addEventListener('click', function () {
+        var next = wheelOptions();
+        next.splice(i, 1);
+        setWheelOptions(next);
+      });
+      li.appendChild(span);
+      li.appendChild(del);
+      list.appendChild(li);
+    });
+    $('wheelHint').textContent = options.length + ' de ' + S.WHEEL_MAX + ' opções · mínimo ' + S.WHEEL_MIN;
+  }
+
+  $('spinBtn').addEventListener('click', function () { send({ type: 'spin' }); });
+  $('clearWheelBtn').addEventListener('click', function () { send({ type: 'clearWheel' }); });
+  $('wheelAuto').addEventListener('change', function () { send({ type: 'setWheelAuto', on: this.checked }); });
+  $('wheelDefaultsBtn').addEventListener('click', function () {
+    if (window.confirm('Voltar para as opções padrão da roleta?')) setWheelOptions(window.BJJPresets.wheel.slice());
+  });
+  $('wheelAddForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var input = $('wheelAddInput');
+    var text = input.value.replace(/\s+/g, ' ').trim();
+    if (!text) return;
+    var options = wheelOptions();
+    if (options.length >= S.WHEEL_MAX) return toast('A roleta aceita no máximo ' + S.WHEEL_MAX + ' opções');
+    var exists = options.some(function (o) { return o.toLowerCase() === text.toLowerCase(); });
+    if (exists) return toast('Essa opção já está na roleta');
+    setWheelOptions(options.concat([text]));
+    input.value = '';
+  });
+
+  function renderWheel() {
+    var w = state.wheel;
+    var spinning = !!(w.spin && conn.now() - w.spin.at < S.SPIN_MS);
+    $('wheelResult').textContent = spinning ? 'Girando…' : (w.current || '—');
+    $('wheelResult').className = 'wheel-result' + (spinning ? ' spinning' : '');
+    $('spinBtn').disabled = spinning;
+    $('wheelAuto').checked = w.auto;
+    $('clearWheelBtn').disabled = !w.current;
+    $('pvRule').hidden = !w.current || spinning;
+    $('pvRule').textContent = 'Regra · ' + (w.current || '');
+  }
+
   $('leaveBtn').addEventListener('click', function () { location.search = ''; });
 
   // ---------- Estado recebido ----------
@@ -229,13 +272,13 @@
       lastMode = state.mode;
       showTab(state.mode);
     }
-    $('soundToggle').checked = state.sound;
     $$('.score-card').forEach(function (card) {
       var a = state.match[card.getAttribute('data-athlete')];
       $$('[data-show]', card).forEach(function (el) { el.textContent = a[el.getAttribute('data-show')]; });
       var input = $$('.name-input', card)[0];
       if (document.activeElement !== input) input.value = a.name;
     });
+    renderWheelOptions();
     tick();
   }
 
@@ -264,6 +307,7 @@
     btn.className = 'big ' + (running ? 'pause' : 'start');
     $('skipBtn').disabled = state.mode === 'stopwatch' || view.status === 'done';
     $('adjustRow').hidden = state.mode === 'rounds';
+    renderWheel();
   }
 
   setInterval(tick, 250);

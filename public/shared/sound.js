@@ -7,12 +7,25 @@
   'use strict';
 
   var ctx = null;
+  var master = null;
+  // Volume do app em 150%: a TV fica num volume menor e o apito ainda corta o barulho do tatame.
+  // Os tons mais altos somados chegam a ~0,9 da escala digital, então não distorcem.
+  var MASTER_VOLUME = 1.5;
 
   function unlock() {
     var AC = root.AudioContext || root.webkitAudioContext;
     if (!AC) return false;
-    if (!ctx) ctx = new AC();
-    if (ctx.state === 'suspended' && ctx.resume) ctx.resume();
+    try {
+      if (!ctx) {
+        ctx = new AC();
+        master = ctx.createGain();
+        master.gain.value = MASTER_VOLUME;
+        master.connect(ctx.destination);
+      }
+      if (ctx.state === 'suspended' && ctx.resume) ctx.resume();
+    } catch (e) {
+      return false; // alguns navegadores de TV falham ao criar o áudio
+    }
     return true;
   }
 
@@ -28,7 +41,7 @@
     gain.gain.setValueAtTime(volume || 0.35, t0 + duration - 0.03);
     gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(master);
     osc.start(t0);
     osc.stop(t0 + duration + 0.02);
   }
@@ -42,6 +55,10 @@
     start: function () { tone(1046, 0, 0.7, 'square', 0.4); },
     // Início do descanso: dois tons descendo.
     rest: function () { tone(660, 0, 0.3, 'triangle', 0.5); tone(440, 0.35, 0.5, 'triangle', 0.5); },
+    // Roleta: "tic" de cada fatia passando pela seta.
+    spinTick: function () { tone(1500, 0, 0.03, 'square', 0.18); },
+    // Roleta parou: três notas subindo.
+    reveal: function () { tone(523, 0, 0.14, 'triangle', 0.5); tone(659, 0.14, 0.14, 'triangle', 0.5); tone(784, 0.28, 0.45, 'triangle', 0.5); },
     // Fim: buzina.
     end: function () {
       tone(220, 0, 1.2, 'sawtooth', 0.35);
@@ -55,5 +72,5 @@
     sounds[name]();
   }
 
-  root.BJJSound = { unlock: unlock, play: play, isReady: function () { return !!ctx && ctx.state === 'running'; } };
+  root.BJJSound = { unlock: unlock, play: play, volume: MASTER_VOLUME, isReady: function () { return !!ctx && ctx.state === 'running'; } };
 })(this);

@@ -1,11 +1,17 @@
-/* Tela da TV: só exibe. Quem manda é o celular (ou o controle remoto da TV). */
+/*
+ * Tela da TV. Três telas, todas operáveis só com o controle remoto:
+ *   menu inicial → modelos de treino → cronômetro (VOLTAR retorna ao menu).
+ * O celular continua podendo controlar tudo ao mesmo tempo.
+ */
 (function () {
   'use strict';
 
   var T = window.BJJTimer;
+  var PRESETS = window.BJJPresets;
   var $ = function (id) { return document.getElementById(id); };
+  var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
 
-  // ---------- Sala ----------
+  // ---------- Armazenamento ----------
   function load(key) {
     try { return localStorage.getItem(key); } catch (e) { return null; }
   }
@@ -13,6 +19,7 @@
     try { localStorage.setItem(key, value); } catch (e) { /* sem storage */ }
   }
 
+  // ---------- Sala ----------
   function readRoomCode() {
     var m = /[?&]sala=([0-9]{4,6})/.exec(location.search);
     if (m) return m[1];
@@ -25,49 +32,435 @@
   function readSavedState(code) {
     var s = null;
     try { s = JSON.parse(load('bjj-state')); } catch (e) { /* estado corrompido */ }
-    return window.BJJState.isValidState(s) && s.code === code ? s : null;
+    return window.BJJState.isValidState(s) && s.code === code ? window.BJJState.upgrade(s) : null;
+  }
+
+  function renderQr(id, code, size) {
+    var box = $(id);
+    box.innerHTML = '';
+    if (!window.QRCode) { box.className += ' missing'; return; }
+    new window.QRCode(box, {
+      text: location.origin + '/controle?sala=' + code,
+      width: size,
+      height: size,
+      colorDark: '#0a0a0a',
+      colorLight: '#f5f5f0',
+      correctLevel: window.QRCode.CorrectLevel.M
+    });
   }
 
   function showCode(code) {
     save('bjj-room', code);
-    $('roomCode').textContent = code;
-    $('roomCode2').textContent = code;
+    $$('.js-room').forEach(function (el) { el.textContent = code; });
     $('remoteUrl').textContent = location.host + '/controle';
-    var qr = $('qr');
-    qr.innerHTML = '';
-    if (window.QRCode) {
-      new window.QRCode(qr, {
-        text: location.origin + '/controle?sala=' + code,
-        width: 256,
-        height: 256,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: window.QRCode.CorrectLevel.M
-      });
-    } else {
-      qr.className += ' missing';
-    }
+    renderQr('qr', code, 320);
+    renderQr('qrSmall', code, 160);
   }
 
   var code = readRoomCode();
   showCode(code);
 
+  // Identifica esta TV no servidor do PeerJS (ver sync.js).
+  var token = load('bjj-token');
+  if (!token || !/^[a-z0-9]{8,}$/.test(token)) {
+    token = (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).slice(0, 16);
+    save('bjj-token', token);
+  }
+
   // ---------- Conexão ----------
+  // Mostrado na TV enquanto os celulares ainda não conseguem achá-la.
+  var CONN_TEXT = {
+    online: 'Pronta para o celular',
+    relay: 'Pronta para o celular · modo compatível',
+    offline: 'Conectando…',
+    taken: 'Liberando a sala…',
+    unsupported: 'Sem conexão com o celular'
+  };
+
   var state = null;
+  var prevState = null;
   var conn = window.BJJSync.host({
     code: code,
     initialState: readSavedState(code),
+    token: token,
     onState: function (s) {
+      prevState = state;
       state = s;
       save('bjj-state', JSON.stringify(s));
+      followRemote();
       render();
     },
-    onCode: showCode,
+    onCode: function (c) { code = c; showCode(c); },
     onPeers: function (p) {
-      $('peers').textContent = p.remote ? '📱 ' + p.remote : '📱 nenhum';
+      $$('.js-peers').forEach(function (el) {
+        el.textContent = p.remote ? p.remote + (p.remote > 1 ? ' celulares' : ' celular') : '';
+      });
     },
-    onStatus: function (s) { $('connDot').className = 'dot' + (s === 'online' ? ' online' : ''); }
+    onStatus: function (s) {
+      $$('.js-dot').forEach(function (el) { el.className = 'dot js-dot' + (s === 'online' || s === 'relay' ? ' online' : ''); });
+      $$('.js-conn-text').forEach(function (el) { el.textContent = CONN_TEXT[s] || ''; });
+    }
   });
+
+  function send(cmd) { conn.send(cmd); }
+
+  // ---------- Telas ----------
+  var screen = null;
+  var lastFocus = {};
+
+  function show(name) {
+    if (screen && document.activeElement && document.activeElement.hasAttribute('data-nav')) {
+      lastFocus[screen] = document.activeElement;
+    }
+    screen = name;
+    ['home', 'presets', 'wheel', 'timer'].forEach(function (n) { $(n).hidden = n !== name; });
+    document.body.setAttribute('data-screen', name);
+    cancelCodeConfirm();
+    if (name !== 'wheel') wheelDraftDirty = false; // ajustes não aplicados são descartados
+    if (name === 'home') updateMenu();
+    if (name === 'presets') markCurrentPreset();
+    render();
+    if (name === 'timer') {
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    } else {
+      var target = lastFocus[name];
+      if (name === 'presets') target = $$('.preset.current')[0] || target;
+      if (name === 'wheel' && !target) target = document.querySelector('[data-wheel="spin"]');
+      if (!target || target.hidden || !isVisible(target)) target = navItems()[0];
+      if (target) target.focus();
+    }
+  }
+
+  // Entrar no cronômetro cria uma entrada no histórico: o VOLTAR do controle
+  // (que em várias TVs só chega como "voltar página") retorna ao menu.
+  function openTimer() {
+    if (screen === 'timer') return;
+    show('timer');
+    try { history.pushState({ bjj: 'timer' }, ''); } catch (e) { /* sem history */ }
+  }
+
+  function goBack() {
+    if (screen === 'timer') {
+      if (history.state && history.state.bjj === 'timer') history.back();
+      else show('home');
+    } else if (screen === 'presets' || screen === 'wheel') {
+      show('home');
+    }
+  }
+
+  window.addEventListener('popstate', function () {
+    if (screen === 'timer') show('home');
+  });
+
+  // O celular mudou o treino ou deu início: a TV mostra o cronômetro.
+  function followRemote() {
+    if (!prevState || !state || screen === null) return;
+    var started = state.clock.running && !prevState.clock.running;
+    var reconfigured = state.mode !== prevState.mode ||
+      JSON.stringify(state.settings) !== JSON.stringify(prevState.settings);
+    if (started || reconfigured) openTimer();
+
+    // Giro novo (pela TV, pelo celular ou automático): mostra a roleta girando.
+    var spin = state.wheel.spin;
+    var prevSpin = prevState.wheel && prevState.wheel.spin;
+    if (spin && (!prevSpin || spin.id !== prevSpin.id)) {
+      if (screen === 'timer') overlayUntil = spin.at + SPIN_MS + RESULT_MS;
+      else if (screen !== 'wheel') show('wheel');
+    }
+  }
+
+  // ---------- Menu inicial ----------
+  function describe(s) {
+    var r = s.settings.rounds;
+    if (s.mode === 'rounds') {
+      return r.rounds + ' × ' + T.formatMs(r.work * 1000) + (r.rest ? ' · descanso ' + T.formatMs(r.rest * 1000) : '');
+    }
+    if (s.mode === 'match') return 'Luta · ' + T.formatMs(s.settings.match.duration * 1000);
+    if (s.mode === 'countdown') return 'Timer · ' + T.formatMs(s.settings.countdown.duration * 1000);
+    return 'Cronômetro livre';
+  }
+
+  var STATUS_WORD = { running: 'Em andamento', paused: 'Pausado', done: 'Encerrado' };
+
+  function updateMenu() {
+    if (!state) return;
+    var view = T.computeView(state, conn.now());
+    var idle = view.status === 'idle';
+    setText('miTimerTitle', idle ? 'Cronômetro' : 'Voltar ao cronômetro');
+    setText('miTimerDesc', idle ? describe(state) : STATUS_WORD[view.status] + ' · ' + T.formatView(view));
+    $('miReset').hidden = idle;
+    setText('miWheelDesc', state.wheel.current ? 'Regra: ' + state.wheel.current : 'Sorteie a regra do combate');
+    if (!codeConfirm) {
+      setText('miCodeTitle', 'Novo código de sala');
+      setText('miCodeDesc', 'Celular não encontra a TV? Gere outro');
+    }
+    // Numeração e posição na grade (2 colunas) só dos itens visíveis.
+    var n = 0;
+    $$('#menu .menu-item').forEach(function (el) {
+      if (el.hidden) return;
+      el.setAttribute('data-col', String(n % 2));
+      el.setAttribute('data-row', String(Math.floor(n / 2)));
+      n += 1;
+      el.querySelector('.num').textContent = (n < 10 ? '0' : '') + n;
+    });
+    // Item focado sumiu (ex.: "Zerar" depois de zerar): o foco volta ao primeiro.
+    var active = document.activeElement;
+    if (screen === 'home' && (!active || active === document.body || active.hidden)) navItems()[0].focus();
+  }
+
+  var codeConfirm = false;
+  var codeConfirmTimer = null;
+  function cancelCodeConfirm() {
+    if (!codeConfirm) return;
+    codeConfirm = false;
+    clearTimeout(codeConfirmTimer);
+    $('miCode').className = 'menu-item';
+    updateMenu();
+  }
+
+  var ACTIONS = {
+    timer: openTimer,
+    presets: function () { show('presets'); },
+    wheel: function () { show('wheel'); },
+    reset: function () { send({ type: 'reset' }); updateMenu(); },
+    code: function () {
+      if (!codeConfirm) {
+        // Trocar o código desconecta os celulares: pede um segundo OK.
+        codeConfirm = true;
+        $('miCode').className = 'menu-item confirm';
+        setText('miCodeTitle', 'Confirmar troca?');
+        setText('miCodeDesc', 'OK confirma · os celulares entram de novo');
+        clearTimeout(codeConfirmTimer);
+        codeConfirmTimer = setTimeout(cancelCodeConfirm, 6000);
+        return;
+      }
+      codeConfirm = false;
+      clearTimeout(codeConfirmTimer);
+      $('miCode').className = 'menu-item';
+      conn.newCode();
+      updateMenu();
+    },
+    fullscreen: function () { toggleFullscreen(); }
+  };
+
+  $$('#menu .menu-item').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      e.stopPropagation(); // senão o clique chega ao cronômetro recém-aberto e o inicia
+      unlock();
+      var action = el.getAttribute('data-action');
+      if (action !== 'code') cancelCodeConfirm();
+      ACTIONS[action]();
+    });
+  });
+
+  // ---------- Modelos ----------
+  var GROUPS = [
+    { mode: 'rounds', title: 'Combate e drills' },
+    { mode: 'match', title: 'Luta por faixa' },
+    { mode: 'countdown', title: 'Timer' }
+  ];
+
+  GROUPS.forEach(function (g, col) {
+    var box = document.createElement('div');
+    box.className = 'preset-col';
+    var h = document.createElement('h3');
+    h.textContent = g.title;
+    box.appendChild(h);
+    PRESETS[g.mode].forEach(function (p, row) {
+      var b = document.createElement('button');
+      b.className = 'preset';
+      b.setAttribute('data-nav', '');
+      b.setAttribute('data-col', String(col));
+      b.setAttribute('data-row', String(row));
+      b.textContent = p.label;
+      if (p.sub) {
+        var small = document.createElement('small');
+        small.textContent = p.sub;
+        b.appendChild(small);
+      }
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        unlock();
+        send({ type: 'configure', mode: g.mode, settings: p.s });
+        openTimer();
+      });
+      b._preset = { mode: g.mode, s: p.s };
+      box.appendChild(b);
+    });
+    $('presetCols').appendChild(box);
+  });
+
+  function markCurrentPreset() {
+    $$('.preset').forEach(function (b) {
+      var p = b._preset;
+      var current = state && state.mode === p.mode && JSON.stringify(state.settings[p.mode]) === JSON.stringify(p.s);
+      b.className = 'preset' + (current ? ' current' : '');
+    });
+  }
+
+  // ---------- Roleta ----------
+  var SPIN_MS = window.BJJState.SPIN_MS;
+  var RESULT_MS = 5000;   // quanto tempo o resultado fica na tela depois que a roleta para
+  var wheelMain = window.BJJWheel.create($('wheelMain'));
+  var wheelOverlay = window.BJJWheel.create($('wheelOverlay'));
+  var overlayUntil = 0;   // relógio da TV até quando o giro aparece por cima do cronômetro
+  var lastAutoSegment = -1;
+
+  var WHEEL_ACTIONS = {
+    spin: function () { send({ type: 'spin' }); },
+    // Aplica o treino ajustado na roleta (se mudou) e começa.
+    start: function () {
+      var changed = state.mode !== 'rounds' || !sameSettings(wheelDraft, state.settings.rounds);
+      if (changed) {
+        send({ type: 'configure', mode: 'rounds', settings: wheelDraft });
+        wheelDraftDirty = false;
+        send({ type: 'start' });
+      } else if (state.clock.running) {
+        openTimer();
+      } else {
+        send({ type: 'start' }); // followRemote abre o cronômetro
+      }
+    },
+    auto: function () { send({ type: 'setWheelAuto', on: !state.wheel.auto }); },
+    clear: function () { send({ type: 'clearWheel' }); }
+  };
+
+  $$('[data-wheel]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      e.stopPropagation();
+      unlock();
+      WHEEL_ACTIONS[el.getAttribute('data-wheel')]();
+    });
+  });
+
+  // ---- Treino da roleta (rounds, tempo, descanso, preparação) ----
+  var WHEEL_STEPPERS = [
+    { key: 'rounds', label: 'Rounds', step: 1 },
+    { key: 'work', label: 'Tempo do round', step: 15, time: true },
+    { key: 'rest', label: 'Descanso', step: 15, time: true },
+    { key: 'prep', label: 'Preparação', step: 5, time: true }
+  ];
+  var wheelDraft = null;       // valores em ajuste na TV
+  var wheelDraftDirty = false; // mexeu e ainda não aplicou
+
+  function sameSettings(a, b) {
+    return a.rounds === b.rounds && a.work === b.work && a.rest === b.rest && a.prep === b.prep;
+  }
+
+  function syncDraft() {
+    if (!wheelDraft || !wheelDraftDirty) wheelDraft = JSON.parse(JSON.stringify(state.settings.rounds));
+  }
+
+  // Abaixo de 1 minuto os tempos andam de 5 em 5 segundos (igual ao celular).
+  function stepDraft(cfg, dir) {
+    var lim = T.LIMITS.rounds[cfg.key];
+    var cur = wheelDraft[cfg.key];
+    var v = cur + dir * cfg.step;
+    if (cfg.time && cfg.step > 5 && (dir < 0 ? cur <= 60 : cur < 60)) v = cur + dir * 5;
+    wheelDraft[cfg.key] = Math.max(lim[0], Math.min(lim[1], v));
+    wheelDraftDirty = true;
+    renderWheel(wheelMain, conn.now());
+  }
+
+  function formatSetting(cfg, v) {
+    if (!cfg.time) return String(v);
+    return v === 0 ? 'Sem' : T.formatMs(v * 1000);
+  }
+
+  WHEEL_STEPPERS.forEach(function (cfg, row) {
+    var b = document.createElement('button');
+    b.className = 'config-row';
+    b.setAttribute('data-nav', '');
+    b.setAttribute('data-col', '0');
+    b.setAttribute('data-row', String(row));
+    b.setAttribute('data-step', cfg.key);
+    b.innerHTML = '<span class="config-label"></span><span class="config-value"><i>◀</i><b></b><i>▶</i></span>';
+    b.querySelector('.config-label').textContent = cfg.label;
+    b._cfg = cfg;
+    b.addEventListener('click', function (e) {
+      e.stopPropagation();
+      unlock();
+      // Com ponteiro (Magic Remote): clique no ◀ diminui, no ▶ aumenta.
+      // O OK do controle também gera um clique (sem posição): esse é ignorado.
+      if (!e.clientX && !e.clientY) return;
+      var t = e.target;
+      if (t && t.tagName === 'I') stepDraft(cfg, t.textContent === '◀' ? -1 : 1);
+    });
+    $('wheelConfig').appendChild(b);
+  });
+
+  function spinSound(name) {
+    return function () { window.BJJSound.play(name); };
+  }
+
+  function renderWheel(target, now) {
+    var w = state.wheel;
+    target.setOptions(w.options);
+    if (w.spin) target.spin(w.spin, now - w.spin.at, SPIN_MS, spinSound('spinTick'), spinSound('reveal'));
+    var spinning = w.spin && now - w.spin.at < SPIN_MS;
+    var result = spinning ? 'Girando…' : (w.current || '—');
+    setText('wheelResult', result);
+    setText('overlayResult', result);
+    setText('wheelAutoDesc', w.auto ? 'Ligado · no início e em cada descanso' : 'Desligado');
+
+    syncDraft();
+    $$('.config-row').forEach(function (row) {
+      var cfg = row._cfg;
+      var v = wheelDraft[cfg.key];
+      row.querySelector('b').textContent = formatSetting(cfg, v);
+      row.className = 'config-row' + (v !== state.settings.rounds[cfg.key] || state.mode !== 'rounds' ? ' changed' : '');
+    });
+    var changed = state.mode !== 'rounds' || !sameSettings(wheelDraft, state.settings.rounds);
+    var d = wheelDraft;
+    var summary = d.rounds + ' × ' + T.formatMs(d.work * 1000) + (d.rest ? ' · descanso ' + T.formatMs(d.rest * 1000) : '');
+    setText('wheelStartDesc', (changed ? 'Aplica ' : '') + summary);
+  }
+
+  // "Girar a cada round": sorteia ao começar o treino e ao entrar em cada descanso,
+  // para a turma ver a regra antes do round. Só a TV faz isso (é ela que guarda o estado).
+  function autoSpin(prev, view) {
+    if (view.status === 'idle') { lastAutoSegment = -1; return; }
+    if (!state.wheel.auto || state.mode !== 'rounds' || !prev || view.status !== 'running') return;
+    var started = prev.status === 'idle';
+    var entered = started || (prev.status === 'running' && view.segmentIndex !== prev.segmentIndex);
+    if (!entered || view.segmentIndex === lastAutoSegment) return;
+    if (!started && view.phase !== 'rest') return;
+    lastAutoSegment = view.segmentIndex;
+    // Fora do render: o comando dispara um novo render na hora.
+    setTimeout(function () { send({ type: 'spin' }); }, 0);
+  }
+
+  // ---------- Navegação pelas setas ----------
+  function isVisible(el) { return !!(el.offsetWidth || el.offsetHeight); }
+
+  function navItems() {
+    if (!screen || screen === 'timer') return [];
+    return $$('[data-nav]', $(screen)).filter(function (el) { return !el.hidden && isVisible(el); });
+  }
+
+  function num(el, attr) { return Number(el.getAttribute(attr)) || 0; }
+
+  function moveFocus(dx, dy) {
+    var items = navItems();
+    if (!items.length) return;
+    var cur = document.activeElement;
+    if (items.indexOf(cur) < 0) { items[0].focus(); return; }
+    var col = num(cur, 'data-col'), row = num(cur, 'data-row');
+    var best = null, bestDist = Infinity;
+    items.forEach(function (el) {
+      var c = num(el, 'data-col'), r = num(el, 'data-row');
+      var dist;
+      if (dy) {
+        if ((r - row) * dy <= 0) return;
+        dist = Math.abs(r - row) * 100 + Math.abs(c - col); // prefere a mesma coluna
+      } else {
+        if ((c - col) * dx <= 0) return;
+        dist = Math.abs(c - col) * 100 + Math.abs(r - row);
+      }
+      if (dist < bestDist) { bestDist = dist; best = el; }
+    });
+    if (best) best.focus();
+  }
 
   // ---------- Renderização ----------
   var NEXT_LABELS = { prep: 'Preparar', work: 'Round', rest: 'Descanso', fight: 'Luta' };
@@ -82,9 +475,30 @@
   function render() {
     if (!state || !conn) return; // conn ainda não existe na primeira chamada do host
     var view = T.computeView(state, conn.now());
+    var active = view.phase === 'work' || view.phase === 'fight';
+    var final = view.status === 'running' && active && view.remainingMs <= 10000 && view.segmentDurationMs > 20000;
 
-    var classes = 'status-' + view.status + ' phase-' + view.phase + ' mode-' + state.mode;
+    var classes = 'status-' + view.status + ' phase-' + view.phase + ' mode-' + state.mode + (final ? ' final' : '');
     if (classes !== lastClasses) { document.body.className = classes; lastClasses = classes; }
+
+    if (screen === 'timer') renderTimer(view);
+    else if (screen === 'home') updateMenu();
+    else if (screen === 'wheel') renderWheel(wheelMain, conn.now());
+
+    autoSpin(prevView, view);
+    playSounds(prevView, view); // o som é sempre ligado
+    prevView = view;
+  }
+
+  var HINT_OK = { idle: 'iniciar', paused: 'continuar', done: 'recomeçar', running: 'pausar' };
+
+  function renderTimer(view) {
+    var now = conn.now();
+    var overlay = now < overlayUntil;
+    $('spinOverlay').hidden = !overlay;
+    if (overlay) renderWheel(wheelOverlay, now);
+    $('ruleBadge').hidden = overlay || !state.wheel.current;
+    if (state.wheel.current) setText('ruleText', state.wheel.current);
 
     var isMatch = state.mode === 'match';
     $('timerView').hidden = isMatch;
@@ -111,13 +525,9 @@
       $('bar').style.width = (view.progress * 100).toFixed(2) + '%';
     }
 
-    $('soundOff').hidden = state.sound;
-    var connectBox = $('connect');
-    connectBox.hidden = view.status === 'running';
-    connectBox.className = 'connect' + (view.status === 'idle' ? '' : ' compact');
-
-    if (state.sound) playSounds(prevView, view);
-    prevView = view;
+    $('soundLocked').hidden = audioReady;
+    $('connect').hidden = view.status === 'running';
+    setText('hintOk', HINT_OK[view.status]);
   }
 
   function renderMatch(view, timeText, label) {
@@ -162,9 +572,7 @@
     else if (active && secs === 10 && view.segmentDurationMs > 20000) S.play('warn');
   }
 
-  setInterval(render, 100);
-
-  // ---------- Interação na TV ----------
+  // ---------- Tela cheia, som e tela sempre ligada ----------
   function requestWakeLock() {
     if (navigator.wakeLock && navigator.wakeLock.request) {
       navigator.wakeLock.request('screen').catch(function () { /* não suportado */ });
@@ -186,24 +594,97 @@
     } catch (e) { /* bloqueado pelo navegador */ }
   }
 
+  // Navegadores só liberam som e tela cheia depois de uma interação.
+  var audioReady = false;
   function unlock() {
-    window.BJJSound.unlock();
+    if (audioReady) return;
+    audioReady = window.BJJSound.unlock();
     requestWakeLock();
     if (!document.fullscreenElement && !document.webkitFullscreenElement) toggleFullscreen();
-    $('unlock').hidden = true;
+    if (!audioReady) audioReady = true; // sem Web Audio: não fica pedindo de novo
   }
 
-  $('unlockBtn').addEventListener('click', unlock);
-  $('unlock').addEventListener('click', unlock);
-  $('fullscreenBtn').addEventListener('click', toggleFullscreen);
+  // ---------- Controle remoto ----------
+  // Navegadores antigos de TV não preenchem `e.key`, por isso também o keyCode.
+  var KEYS = {
+    ok: { keys: ['Enter', ' ', 'Spacebar', 'Select', 'Accept', 'NumpadEnter'], codes: [13, 23, 32] },
+    play: { keys: ['MediaPlayPause', 'MediaPlay', 'MediaPause', 'Play', 'Pause'], codes: [179, 415, 19, 10252] },
+    // VOLTAR: Backspace/Esc, Return do Tizen (10009) e Back do webOS (461).
+    back: { keys: ['Backspace', 'Escape', 'Esc', 'GoBack', 'BrowserBack', 'Back'], codes: [8, 27, 10009, 461] },
+    up: { keys: ['ArrowUp', 'Up'], codes: [38] },
+    down: { keys: ['ArrowDown', 'Down'], codes: [40] },
+    left: { keys: ['ArrowLeft', 'Left'], codes: [37] },
+    right: { keys: ['ArrowRight', 'Right'], codes: [39] }
+  };
 
-  // Controle remoto da TV: OK/Enter/Espaço/Play inicia e pausa.
-  document.addEventListener('keydown', function (e) {
-    if (!$('unlock').hidden) return;
-    var k = e.key;
-    if (k === 'Enter' || k === ' ' || k === 'MediaPlayPause' || e.keyCode === 179 || e.keyCode === 415 || e.keyCode === 19) {
-      e.preventDefault();
-      conn.send({ type: 'toggle' });
+  function keyOf(e) {
+    for (var name in KEYS) {
+      if (KEYS[name].keys.indexOf(e.key) >= 0 || KEYS[name].codes.indexOf(e.keyCode) >= 0) return name;
     }
+    return null;
+  }
+
+  // Segurar o botão gera várias teclas seguidas: só a primeira conta.
+  var lastToggle = 0;
+  function toggleTimer() {
+    var now = Date.now();
+    if (now - lastToggle < 400) return;
+    lastToggle = now;
+    send({ type: 'toggle' });
+  }
+
+  document.addEventListener('keydown', function (e) {
+    var k = keyOf(e);
+    if (!k) return;
+    if (k !== 'back') unlock(); // Esc não conta como interação para liberar o áudio
+
+    if (k === 'back') {
+      if (screen === 'home') {
+        // No menu, o VOLTAR só cancela a confirmação; senão o navegador decide (ex.: sair).
+        if (codeConfirm) { e.preventDefault(); cancelCodeConfirm(); }
+        return;
+      }
+      e.preventDefault();
+      goBack();
+      return;
+    }
+
+    e.preventDefault(); // evita rolagem e o "clique" duplicado no elemento focado
+    if (e.repeat && (k === 'ok' || k === 'play')) return;
+
+    if (screen === 'timer') {
+      if (k === 'ok' || k === 'play') toggleTimer();
+      return; // setas não fazem nada no cronômetro (só liberam o som)
+    }
+
+    if (k === 'play') { openTimer(); toggleTimer(); return; }
+    if (k === 'ok') {
+      var el = document.activeElement;
+      if (navItems().indexOf(el) >= 0) el.click();
+      else if (navItems()[0]) navItems()[0].focus();
+      return;
+    }
+    var focused = document.activeElement;
+    if ((k === 'left' || k === 'right') && focused && focused._cfg) {
+      stepDraft(focused._cfg, k === 'left' ? -1 : 1); // segurar a seta ajusta mais rápido
+      return;
+    }
+    if (k === 'up') moveFocus(0, -1);
+    else if (k === 'down') moveFocus(0, 1);
+    else if (k === 'left') moveFocus(-1, 0);
+    else if (k === 'right') moveFocus(1, 0);
   });
+
+  // Controle com ponteiro (ex.: Magic Remote da LG): o OK vira um clique.
+  document.addEventListener('click', function () {
+    unlock();
+    if (screen === 'timer') toggleTimer();
+  });
+
+  // ---------- Início ----------
+  var initial = state ? T.computeView(state, conn.now()).status : 'idle';
+  if (initial === 'idle') show('home');
+  else openTimer(); // treino em andamento (ex.: a página recarregou): direto para o cronômetro
+
+  setInterval(render, 100);
 })();

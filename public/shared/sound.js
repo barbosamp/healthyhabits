@@ -7,12 +7,21 @@
   'use strict';
 
   var ctx = null;
+  var master = null;
+  // Volume do app em 150%: a TV fica num volume menor e o apito ainda corta o barulho do tatame.
+  // Os tons mais altos somados chegam a ~0,9 da escala digital, então não distorcem.
+  var MASTER_VOLUME = 1.5;
 
   function unlock() {
     var AC = root.AudioContext || root.webkitAudioContext;
     if (!AC) return false;
     try {
-      if (!ctx) ctx = new AC();
+      if (!ctx) {
+        ctx = new AC();
+        master = ctx.createGain();
+        master.gain.value = MASTER_VOLUME;
+        master.connect(ctx.destination);
+      }
       if (ctx.state === 'suspended' && ctx.resume) ctx.resume();
     } catch (e) {
       return false; // alguns navegadores de TV falham ao criar o áudio
@@ -32,7 +41,7 @@
     gain.gain.setValueAtTime(volume || 0.35, t0 + duration - 0.03);
     gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(master);
     osc.start(t0);
     osc.stop(t0 + duration + 0.02);
   }
@@ -63,5 +72,5 @@
     sounds[name]();
   }
 
-  root.BJJSound = { unlock: unlock, play: play, isReady: function () { return !!ctx && ctx.state === 'running'; } };
+  root.BJJSound = { unlock: unlock, play: play, volume: MASTER_VOLUME, isReady: function () { return !!ctx && ctx.state === 'running'; } };
 })(this);

@@ -24,16 +24,20 @@ controlar a mesma TV ao mesmo tempo).
 **Roleta** (jogo da regra do combate)
 - Sorteia a regra que a turma vai seguir: só finalização, só pontuação, só queda, chave de pé,
   chave de braço, pescoço, no-gi. O professor edita as opções pelo celular (de 2 a 12)
+- Na própria tela da roleta dá para ajustar o treino (rounds, tempo do round, descanso e
+  preparação): na TV com ▲▼ e ◀▶, no celular na aba Roleta. "Começar o combate" aplica e inicia
+- Depois de parar, o resultado fica 5 s na tela antes de voltar ao cronômetro
 - Gira pelo controle da TV (menu → Roleta) ou pelo celular (aba Roleta); nunca repete a anterior
 - A regra sorteada fica no topo do cronômetro durante o round
 - **Girar a cada round**: no treino em rounds, sorteia ao iniciar e em cada descanso — a roleta
   aparece por cima do cronômetro e a turma já sabe a regra do próximo round
 
 **Sons** gerados no navegador: bip de 10 segundos, contagem 3-2-1 antes de cada
-round, sinal de início, sinal de descanso e buzina de fim. Dá para desligar pelo celular.
+round, sinal de início, sinal de descanso, buzina de fim e os sons da roleta. O som fica
+**sempre ligado** e sai em **150%** do volume normal: ajuste o volume pela TV.
 
 **TV pelo controle remoto**
-- **Menu inicial**: cronômetro, modelos de treino, zerar, som, **novo código de sala** e tela cheia
+- **Menu inicial**: cronômetro, roleta, modelos de treino, zerar, **novo código de sala** e tela cheia
 - **Modelos de treino** direto na TV (combate e drills, luta por faixa, timer), sem precisar do celular
 - No cronômetro: **OK** inicia/pausa e **VOLTAR** retorna ao menu (o tempo continua correndo)
 - Teclas: setas, OK/Enter, Play/Pause e VOLTAR (Backspace/Esc, Return do Tizen, Back do webOS);
@@ -146,5 +150,5 @@ O celular envia para a TV mensagens `{"kind":"cmd","id":1,"cmd":{...}}`. Comando
 | Pular fase | `{"type":"skip"}` |
 | Placar | `{"type":"score","athlete":"a","field":"points","delta":2}` (`advantages`, `penalties`) |
 | Nomes | `{"type":"setNames","a":"Marcos","b":"João"}` |
-| Zerar placar / som | `{"type":"resetScore"}` · `{"type":"setSound","on":false}` |
+| Zerar placar | `{"type":"resetScore"}` |
 | Roleta | `{"type":"spin"}` · `{"type":"setWheelOptions","options":["Só queda","No-gi"]}` · `{"type":"setWheelAuto","on":true}` · `{"type":"clearWheel"}` |

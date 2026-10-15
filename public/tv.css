@@ -206,7 +206,6 @@ body.status-paused .frame { border-color: var(--gray); }
 .round-label { font-family: var(--display); font-size: 7vh; letter-spacing: 0.08em; line-height: 1; }
 .top-right { display: flex; gap: 1.4vw; align-items: center; font-size: 1.8vh; color: var(--gray); }
 .top-right b { color: var(--white); font-weight: 400; }
-.sound-off { color: var(--white); border: 1px solid var(--white); padding: 0.4vh 0.8vw; }
 
 .timer-view {
   height: 100%;
@@ -411,19 +410,51 @@ body.mode-match .hint { bottom: 4vh; }
 .wheel-hub i { display: block; width: 0.9vh; height: 4.6vh; background: var(--gold); }
 
 .wheel-side { align-self: center; }
-.wheel-side .title { font-size: 8vh; margin-bottom: 3vh; }
-.wheel-result { border-left: 0.6vh solid var(--gold); padding: 1.2vh 0 1.2vh 1.6vw; margin-bottom: 4vh; }
+.wheel-side .title { font-size: 6vh; margin: 1vh 0 2.4vh; }
+.wheel-result { border-left: 0.6vh solid var(--gold); padding: 1vh 0 1vh 1.6vw; margin-bottom: 2.6vh; }
 .wheel-result .label { font-size: 1.7vh; color: var(--gray); }
 .wheel-result-text {
   font-family: var(--display);
-  font-size: 9vh;
+  font-size: 7vh;
   line-height: 1;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--gold);
   margin-top: 0.8vh;
 }
-.wheel-menu { display: grid; grid-template-columns: 1fr; gap: 1.2vh; max-width: 40vw; }
+.wheel-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2vh 1vw; max-width: 46vw; }
+.wheel-menu .menu-item .t { font-size: 3.4vh; }
+
+/* Treino da roleta: ▲▼ escolhe o campo, ◀▶ ajusta. */
+.wheel-config-title { font-size: 1.7vh; color: var(--gray); margin-bottom: 1vh; }
+.wheel-config { display: grid; gap: 0.7vh; max-width: 46vw; margin-bottom: 2.6vh; }
+.config-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7vh 1vw 0.6vh 1.4vw;
+  background: var(--tatame);
+  border: 0;
+  border-left: 0.6vh solid var(--tatame);
+  text-align: left;
+  cursor: pointer;
+  outline: 0;
+}
+.config-label { font-size: 2.2vh; color: var(--white); }
+.config-value { display: flex; align-items: center; gap: 1.2vw; }
+.config-value b {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 4.2vh;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  min-width: 7vw;
+  text-align: center;
+}
+.config-value i { font-style: normal; font-size: 2vh; color: var(--gray); }
+.config-row.changed b { color: var(--gold); }
+.config-row:focus { background: var(--blackout); border-left-color: var(--gold); box-shadow: inset 0 0 0 0.25vh var(--gold); }
+.config-row:focus i { color: var(--gold); }
 
 /* Regra em vigor, no topo do cronômetro. */
 .rule-badge {

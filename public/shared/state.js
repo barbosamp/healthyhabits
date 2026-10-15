@@ -50,7 +50,6 @@
       settings: clone(T.DEFAULT_SETTINGS),
       clock: { running: false, startedAt: 0, accumulated: 0 },
       match: { a: athlete('Atleta 1'), b: athlete('Atleta 2') },
-      sound: true,
       wheel: createWheel()
     };
   }
@@ -182,11 +181,6 @@
       ['a', 'b'].forEach(function (key) {
         SCORE_FIELDS.forEach(function (f) { state.match[key][f] = 0; });
       });
-    },
-
-    setSound: function (state, cmd) {
-      if (typeof cmd.on !== 'boolean') fail('on deve ser booleano');
-      state.sound = cmd.on;
     },
 
     // Sorteia uma opção da roleta. Nunca repete a do giro anterior.

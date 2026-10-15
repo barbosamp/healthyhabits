@@ -116,6 +116,7 @@
     ['home', 'presets', 'wheel', 'timer'].forEach(function (n) { $(n).hidden = n !== name; });
     document.body.setAttribute('data-screen', name);
     cancelCodeConfirm();
+    if (name !== 'wheel') wheelDraftDirty = false; // ajustes não aplicados são descartados
     if (name === 'home') updateMenu();
     if (name === 'presets') markCurrentPreset();
     render();
@@ -124,6 +125,7 @@
     } else {
       var target = lastFocus[name];
       if (name === 'presets') target = $$('.preset.current')[0] || target;
+      if (name === 'wheel' && !target) target = document.querySelector('[data-wheel="spin"]');
       if (!target || target.hidden || !isVisible(target)) target = navItems()[0];
       if (target) target.focus();
     }
@@ -162,7 +164,7 @@
     var spin = state.wheel.spin;
     var prevSpin = prevState.wheel && prevState.wheel.spin;
     if (spin && (!prevSpin || spin.id !== prevSpin.id)) {
-      if (screen === 'timer') overlayUntil = spin.at + SPIN_MS + 2500;
+      if (screen === 'timer') overlayUntil = spin.at + SPIN_MS + RESULT_MS;
       else if (screen !== 'wheel') show('wheel');
     }
   }
@@ -187,7 +189,6 @@
     setText('miTimerTitle', idle ? 'Cronômetro' : 'Voltar ao cronômetro');
     setText('miTimerDesc', idle ? describe(state) : STATUS_WORD[view.status] + ' · ' + T.formatView(view));
     $('miReset').hidden = idle;
-    setText('miSoundDesc', state.sound ? 'Ligado' : 'Desligado');
     setText('miWheelDesc', state.wheel.current ? 'Regra: ' + state.wheel.current : 'Sorteie a regra do combate');
     if (!codeConfirm) {
       setText('miCodeTitle', 'Novo código de sala');
@@ -222,7 +223,6 @@
     presets: function () { show('presets'); },
     wheel: function () { show('wheel'); },
     reset: function () { send({ type: 'reset' }); updateMenu(); },
-    sound: function () { send({ type: 'setSound', on: !state.sound }); updateMenu(); },
     code: function () {
       if (!codeConfirm) {
         // Trocar o código desconecta os celulares: pede um segundo OK.
@@ -300,6 +300,7 @@
 
   // ---------- Roleta ----------
   var SPIN_MS = window.BJJState.SPIN_MS;
+  var RESULT_MS = 5000;   // quanto tempo o resultado fica na tela depois que a roleta para
   var wheelMain = window.BJJWheel.create($('wheelMain'));
   var wheelOverlay = window.BJJWheel.create($('wheelOverlay'));
   var overlayUntil = 0;   // relógio da TV até quando o giro aparece por cima do cronômetro
@@ -307,9 +308,18 @@
 
   var WHEEL_ACTIONS = {
     spin: function () { send({ type: 'spin' }); },
+    // Aplica o treino ajustado na roleta (se mudou) e começa.
     start: function () {
-      if (state.clock.running) openTimer();
-      else send({ type: 'start' }); // followRemote abre o cronômetro
+      var changed = state.mode !== 'rounds' || !sameSettings(wheelDraft, state.settings.rounds);
+      if (changed) {
+        send({ type: 'configure', mode: 'rounds', settings: wheelDraft });
+        wheelDraftDirty = false;
+        send({ type: 'start' });
+      } else if (state.clock.running) {
+        openTimer();
+      } else {
+        send({ type: 'start' }); // followRemote abre o cronômetro
+      }
     },
     auto: function () { send({ type: 'setWheelAuto', on: !state.wheel.auto }); },
     clear: function () { send({ type: 'clearWheel' }); }
@@ -323,8 +333,64 @@
     });
   });
 
+  // ---- Treino da roleta (rounds, tempo, descanso, preparação) ----
+  var WHEEL_STEPPERS = [
+    { key: 'rounds', label: 'Rounds', step: 1 },
+    { key: 'work', label: 'Tempo do round', step: 15, time: true },
+    { key: 'rest', label: 'Descanso', step: 15, time: true },
+    { key: 'prep', label: 'Preparação', step: 5, time: true }
+  ];
+  var wheelDraft = null;       // valores em ajuste na TV
+  var wheelDraftDirty = false; // mexeu e ainda não aplicou
+
+  function sameSettings(a, b) {
+    return a.rounds === b.rounds && a.work === b.work && a.rest === b.rest && a.prep === b.prep;
+  }
+
+  function syncDraft() {
+    if (!wheelDraft || !wheelDraftDirty) wheelDraft = JSON.parse(JSON.stringify(state.settings.rounds));
+  }
+
+  // Abaixo de 1 minuto os tempos andam de 5 em 5 segundos (igual ao celular).
+  function stepDraft(cfg, dir) {
+    var lim = T.LIMITS.rounds[cfg.key];
+    var cur = wheelDraft[cfg.key];
+    var v = cur + dir * cfg.step;
+    if (cfg.time && cfg.step > 5 && (dir < 0 ? cur <= 60 : cur < 60)) v = cur + dir * 5;
+    wheelDraft[cfg.key] = Math.max(lim[0], Math.min(lim[1], v));
+    wheelDraftDirty = true;
+    renderWheel(wheelMain, conn.now());
+  }
+
+  function formatSetting(cfg, v) {
+    if (!cfg.time) return String(v);
+    return v === 0 ? 'Sem' : T.formatMs(v * 1000);
+  }
+
+  WHEEL_STEPPERS.forEach(function (cfg, row) {
+    var b = document.createElement('button');
+    b.className = 'config-row';
+    b.setAttribute('data-nav', '');
+    b.setAttribute('data-col', '0');
+    b.setAttribute('data-row', String(row));
+    b.setAttribute('data-step', cfg.key);
+    b.innerHTML = '<span class="config-label"></span><span class="config-value"><i>◀</i><b></b><i>▶</i></span>';
+    b.querySelector('.config-label').textContent = cfg.label;
+    b._cfg = cfg;
+    b.addEventListener('click', function (e) {
+      e.stopPropagation();
+      unlock();
+      // Com ponteiro (Magic Remote): clique no ◀ diminui, no ▶ aumenta.
+      // O OK do controle também gera um clique (sem posição): esse é ignorado.
+      if (!e.clientX && !e.clientY) return;
+      var t = e.target;
+      if (t && t.tagName === 'I') stepDraft(cfg, t.textContent === '◀' ? -1 : 1);
+    });
+    $('wheelConfig').appendChild(b);
+  });
+
   function spinSound(name) {
-    return function () { if (state.sound) window.BJJSound.play(name); };
+    return function () { window.BJJSound.play(name); };
   }
 
   function renderWheel(target, now) {
@@ -335,8 +401,19 @@
     var result = spinning ? 'Girando…' : (w.current || '—');
     setText('wheelResult', result);
     setText('overlayResult', result);
-    setText('wheelAutoDesc', w.auto ? 'Ligado · sorteia no início e em cada descanso' : 'Desligado');
-    setText('wheelStartDesc', describe(state));
+    setText('wheelAutoDesc', w.auto ? 'Ligado · no início e em cada descanso' : 'Desligado');
+
+    syncDraft();
+    $$('.config-row').forEach(function (row) {
+      var cfg = row._cfg;
+      var v = wheelDraft[cfg.key];
+      row.querySelector('b').textContent = formatSetting(cfg, v);
+      row.className = 'config-row' + (v !== state.settings.rounds[cfg.key] || state.mode !== 'rounds' ? ' changed' : '');
+    });
+    var changed = state.mode !== 'rounds' || !sameSettings(wheelDraft, state.settings.rounds);
+    var d = wheelDraft;
+    var summary = d.rounds + ' × ' + T.formatMs(d.work * 1000) + (d.rest ? ' · descanso ' + T.formatMs(d.rest * 1000) : '');
+    setText('wheelStartDesc', (changed ? 'Aplica ' : '') + summary);
   }
 
   // "Girar a cada round": sorteia ao começar o treino e ao entrar em cada descanso,
@@ -374,8 +451,8 @@
       var c = num(el, 'data-col'), r = num(el, 'data-row');
       var dist;
       if (dy) {
-        if (c !== col || (r - row) * dy <= 0) return;
-        dist = Math.abs(r - row);
+        if ((r - row) * dy <= 0) return;
+        dist = Math.abs(r - row) * 100 + Math.abs(c - col); // prefere a mesma coluna
       } else {
         if ((c - col) * dx <= 0) return;
         dist = Math.abs(c - col) * 100 + Math.abs(r - row);
@@ -409,7 +486,7 @@
     else if (screen === 'wheel') renderWheel(wheelMain, conn.now());
 
     autoSpin(prevView, view);
-    if (state.sound) playSounds(prevView, view);
+    playSounds(prevView, view); // o som é sempre ligado
     prevView = view;
   }
 
@@ -448,8 +525,7 @@
       $('bar').style.width = (view.progress * 100).toFixed(2) + '%';
     }
 
-    $('soundOff').hidden = state.sound;
-    $('soundLocked').hidden = audioReady || !state.sound;
+    $('soundLocked').hidden = audioReady;
     $('connect').hidden = view.status === 'running';
     setText('hintOk', HINT_OK[view.status]);
   }
@@ -586,6 +662,11 @@
       var el = document.activeElement;
       if (navItems().indexOf(el) >= 0) el.click();
       else if (navItems()[0]) navItems()[0].focus();
+      return;
+    }
+    var focused = document.activeElement;
+    if ((k === 'left' || k === 'right') && focused && focused._cfg) {
+      stepDraft(focused._cfg, k === 'left' ? -1 : 1); // segurar a seta ajusta mais rápido
       return;
     }
     if (k === 'up') moveFocus(0, -1);

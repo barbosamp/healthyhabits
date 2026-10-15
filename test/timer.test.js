@@ -165,7 +165,8 @@ test('comandos inválidos são rejeitados', () => {
     { type: 'score', athlete: 'a', field: 'name', delta: 1 },
     { type: 'score', athlete: 'a', field: 'points', delta: 50 },
     { type: 'adjust', seconds: 1.5 },
-    { type: 'setSound', on: 'sim' }
+    // O som é sempre ligado: não existe mais comando para desligar.
+    { type: 'setSound', on: false }
   ];
   for (const cmd of bad) {
     assert.throws(() => applyCommand(s, cmd, 0), CommandError, JSON.stringify(cmd));

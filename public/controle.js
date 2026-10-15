@@ -99,8 +99,10 @@
     });
   }
 
-  function buildSteppers(mode) {
-    var box = $(mode + 'Steppers');
+  // O mesmo modo pode ter campos em mais de uma aba (ex.: rounds em Treino e em Roleta).
+  function buildSteppers(mode, boxId) {
+    var box = $(boxId || mode + 'Steppers');
+    box.setAttribute('data-mode', mode);
     STEPPERS[mode].forEach(function (cfg) {
       var row = document.createElement('div');
       row.className = 'stepper';
@@ -125,11 +127,11 @@
   }
 
   function renderSteppers(mode) {
-    $$('output', $(mode + 'Steppers')).forEach(function (out) {
+    $$('.steppers[data-mode="' + mode + '"] output').forEach(function (out) {
       var key = out.getAttribute('data-key');
       var cfg = STEPPERS[mode].filter(function (c) { return c.key === key; })[0];
       var v = drafts[mode][key];
-      out.textContent = cfg.time ? (v === 0 ? '—' : T.formatMs(v * 1000)) : String(v);
+      out.textContent = cfg.time ? (v === 0 ? 'Sem' : T.formatMs(v * 1000)) : String(v);
     });
   }
 
@@ -137,6 +139,7 @@
     buildPresets(mode);
     buildSteppers(mode);
   });
+  buildSteppers('rounds', 'wheelSteppers');
 
   $$('[data-apply]').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -255,7 +258,6 @@
     $('pvRule').textContent = 'Regra · ' + (w.current || '');
   }
 
-  $('soundToggle').addEventListener('change', function () { send({ type: 'setSound', on: this.checked }); });
   $('leaveBtn').addEventListener('click', function () { location.search = ''; });
 
   // ---------- Estado recebido ----------
@@ -270,7 +272,6 @@
       lastMode = state.mode;
       showTab(state.mode);
     }
-    $('soundToggle').checked = state.sound;
     $$('.score-card').forEach(function (card) {
       var a = state.match[card.getAttribute('data-athlete')];
       $$('[data-show]', card).forEach(function (el) { el.textContent = a[el.getAttribute('data-show')]; });

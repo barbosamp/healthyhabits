@@ -33,9 +33,6 @@
         <button class="menu-item" data-nav data-action="reset" id="miReset">
           <span class="num"></span><b class="t">Zerar cronômetro</b><span class="d">Volta ao início do treino atual</span>
         </button>
-        <button class="menu-item" data-nav data-action="sound">
-          <span class="num"></span><b class="t">Som</b><span class="d" id="miSoundDesc"></span>
-        </button>
         <button class="menu-item" data-nav data-action="code" id="miCode">
           <span class="num"></span><b class="t" id="miCodeTitle">Novo código de sala</b><span class="d" id="miCodeDesc"></span>
         </button>
@@ -89,24 +86,28 @@
         <div class="label">Sorteado</div>
         <div id="wheelResult" class="wheel-result-text">—</div>
       </div>
+
+      <div class="label wheel-config-title">Treino</div>
+      <div id="wheelConfig" class="wheel-config"></div>
+
       <nav class="wheel-menu" aria-label="Roleta">
-        <button class="menu-item" data-nav data-col="0" data-row="0" data-wheel="spin">
+        <button class="menu-item" data-nav data-col="0" data-row="4" data-wheel="spin">
           <span class="num">01</span><b class="t">Girar a roleta</b><span class="d">Sorteia uma regra nova</span>
         </button>
-        <button class="menu-item" data-nav data-col="0" data-row="1" data-wheel="start">
+        <button class="menu-item" data-nav data-col="1" data-row="4" data-wheel="start">
           <span class="num">02</span><b class="t">Começar o combate</b><span class="d" id="wheelStartDesc"></span>
         </button>
-        <button class="menu-item" data-nav data-col="0" data-row="2" data-wheel="auto">
+        <button class="menu-item" data-nav data-col="0" data-row="5" data-wheel="auto">
           <span class="num">03</span><b class="t">Girar a cada round</b><span class="d" id="wheelAutoDesc"></span>
         </button>
-        <button class="menu-item" data-nav data-col="0" data-row="3" data-wheel="clear">
+        <button class="menu-item" data-nav data-col="1" data-row="5" data-wheel="clear">
           <span class="num">04</span><b class="t">Sem regra</b><span class="d">Tira a regra do cronômetro</span>
         </button>
       </nav>
     </div>
     <footer class="foot">
       <span class="label">As opções da roleta são editadas pelo celular</span>
-      <span class="label keys"><kbd>▲▼</kbd> navegar <kbd>OK</kbd> selecionar <kbd>VOLTAR</kbd> menu</span>
+      <span class="label keys"><kbd>▲▼</kbd> navegar <kbd>◀▶</kbd> ajustar <kbd>OK</kbd> selecionar <kbd>VOLTAR</kbd> menu</span>
     </footer>
   </section>
 
@@ -117,7 +118,6 @@
     <header class="top">
       <div id="roundLabel" class="round-label"></div>
       <div class="top-right label">
-        <span id="soundOff" class="sound-off" hidden>Som desligado</span>
         <span class="dot js-dot"></span>
         <span>Sala <b class="js-room">----</b></span>
         <span class="js-peers"></span>
